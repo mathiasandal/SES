@@ -29,6 +29,6 @@ zeta = c/c_cr  # [-] Damping ratio of the system
 '''Print results'''
 
 print('Natural frequency:\t', round(omega_0, 2), '\t[rad/s]')
-print('Natural frequency:\t', round(omega_0/2*np.pi, 2), '\t[Hz]')
+print('Natural frequency:\t', round(omega_0/2/np.pi, 2), '\t[Hz]')
 print('Damping ratio:\t\t', round(zeta, 3), '\t[-]')
 
