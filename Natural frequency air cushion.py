@@ -1,5 +1,7 @@
 import numpy as np
 
+# TODO: Make sure that the input parameters are correct
+
 """Input parameters"""
 A_b = 60  # [m^2] Air cushion area
 h_b = 0.4  # [m] Distance from waterline to the roof of the air cushion
