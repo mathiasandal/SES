@@ -2,7 +2,7 @@ import numpy as np
 
 """Input parameters"""
 A_b = 60  # [m^2] Air cushion area
-h_b = 0.1  # [m] Distance from waterline to the roof of the air cushion
+h_b = 0.4  # [m] Distance from waterline to the roof of the air cushion
 M = 25e3  # [kg] Total mass of the vessel
 p_0 = 3500  # [Pa] Excess air pressure in air cushion
 p_a = 101325  # [Pa] Atmospheric pressure
@@ -23,4 +23,10 @@ k = A_b  # [m^2] Stiffness equivalent coefficient
 omega_0 = np.sqrt(k/m)  # [rad/s] Natural frequency of uniform pressure oscillations
 c_cr = 2 * np.sqrt(k*m)  # [m^2 s] Critical damping of the system
 zeta = c/c_cr  # [-] Damping ratio of the system
+
+'''Print results'''
+
+print('Natural frequency:\t', round(omega_0, 2), '\t[rad/s]')
+print('Natural frequency:\t', round(omega_0/2*np.pi, 2), '\t[Hz]')
+print('Damping ratio:\t\t', round(zeta, 3), '\t[-]')
 
