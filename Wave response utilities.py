@@ -15,3 +15,10 @@ def solve_eq_motion_steady_state(M, B, C, F, omega):
     eta = np.linalg.solve(-omega**2 * M + 1j*omega * B + C, F)
 
     return eta
+
+
+def calculate_eigenfrequency_and_eigenmodes(M, C):
+
+    omegas = 0
+
+    return omegas
