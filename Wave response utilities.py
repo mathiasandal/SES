@@ -43,15 +43,33 @@ def calculate_eigenfrequency_and_eigenmodes(M, C):
 
     # A = np.matmul(L_inv, np.matmul(C, L_T_inv))
 
-    eigenvalues, eigenvectors = np.linalg.eig(A)
+    eigenvalues, eigenvectors_orthogonal = np.linalg.eig(A)  # Solve for eigenvalues of the orthogonal eigenmodes
 
-    # Todo: Make sure I go back to physical coordinates correctly: x = L_T_inv * q
-    
-    #eigenvalues, eigenvectors_orthogonal = np.linalg.eig(A)
+    # Transform from Cholesky to physical space (x = L_T_inv*q)
+    # eigenvectors = np.matmul(L_T_inv, eigenvectors_orthogonal)
+    eigenvectors = L_T_inv @ eigenvectors_orthogonal
 
-    #eigenvectors = np.matmul(L_T_inv, eigenvectors_orthogonal)
+    # Mulitplying eigenvectors by 1/norm(vec[:, i]) to normalize the eigenvectors
+    RHS = np.diag(np.power(np.linalg.norm(np.transpose(eigenvectors), ord=2, axis=1), -1))
+    print(RHS)
+    eigenvectors_normalized = eigenvectors @ RHS
 
-    return eigenvalues, eigenvectors
+    ''''''
+    # Testing
+    eigenvector1 = eigenvectors_normalized[:, 0]
+    eigenvector2 = eigenvectors_normalized[:, 1]
+
+
+    print('Eigenvectors: \n', eigenvectors_normalized)
+    print()
+    print('Eigenvector1 = ', eigenvector1)
+    print('Magnitude of Eigenvector1 = ', np.linalg.norm(eigenvector1, ord=2))
+    print('Eigenvector2 = ', eigenvector2)
+    print('Magnitude of Eigenvector2 = ', np.linalg.norm(eigenvector2, ord=2))
+    print()
+
+
+    return eigenvalues, eigenvectors_normalized
 
 
 if __name__ == "__main__":
