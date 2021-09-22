@@ -1,5 +1,5 @@
 import numpy as np
-
+import scipy.linalg as la
 
 def solve_eq_motion_steady_state(M, B, C, F, omega):
     """
@@ -86,6 +86,7 @@ if __name__ == "__main__":
                   [0.3333, 0.6667, 1.0000, 0.7500],
                   [0.2500, 0.5000, 0.7500, 1.0000]])
 
+    D, V = la.eig(K, M)  # la.eig(K, M) does the exact same as calculate_eigenfrequency_and_eigenmodes(M, C): hahaha
 
     # Testing calculate_eigenfrequency_and_eigenmodes(M, C)
 
@@ -97,6 +98,13 @@ if __name__ == "__main__":
     print('Eigenvectors:')
     print(eigenvectors)
     print()
+    print('D: ')
+    print(D)
+    print()
+    print('V: ')
+    print(V)
+    print()
+
 
     print('v1 = ', eigenvectors[:, 0])
     print('v2 = ', eigenvectors[:, 1])
