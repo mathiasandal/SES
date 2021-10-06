@@ -30,7 +30,7 @@ B = DAMP[0, 0, freq_index, :, :]
 # Calculates eigenvalues and eigenmodes
 D, V = la.eig(K, M)  # The warning 'Too many values to unpack do not affect D and V'
 
-print(V)
+print(D)
 
 # Decouple the matrices as surge, heave and pitch is decoupled from sway, roll and yaw due to symmetry
 K_surge_heave_pitch = decouple_matrix(K, [0, 2, 4])
