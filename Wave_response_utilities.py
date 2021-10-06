@@ -68,8 +68,27 @@ def calculate_eigenfrequency_and_eigenmodes(M, C):
     print('Magnitude of Eigenvector2 = ', np.linalg.norm(eigenvector2, ord=2))
     print()
 
-
     return eigenvalues, eigenvectors_normalized
+
+
+def decouple_matrix(mat_in, elem):
+    """
+    Reduce the size of the matrix with the elements specified in elem
+
+    :param mat_in: an (MXM) numpy array
+    :param elem: (1XN) numpy array containing the indexes to be put in mat_out
+    :return:
+        mat_out: (NXN) numpy array containing elements from mat_in specified by elem
+    """
+
+    n = len(elem)
+    mat_out = np.zeros([n, n])
+
+    for i in range(n):
+        for j in range(n):
+            mat_out[i, j] = mat_in[elem[i], elem[j]]
+
+    return mat_out
 
 
 if __name__ == "__main__":
