@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 
+
 def solve_eq_motion_steady_state(M, B, C, F, omega):
     """
     Solves the steady state solution for a given frequency.
@@ -126,11 +127,30 @@ def cushion_terms(gamma, rho, g, h, h_b, p_0, p_a, Q_0, dQdp0, S_0):
     C_cushion[2, 6] = 0
     C_cushion[4, 6] = 0
 
-
     return C_cushion, B_cushion
 
-if __name__ == "__main__":
+def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81):
+    n = len(wave_frequencies)
+    m = len(mass)
+    nat_frequencies = np.zeros([n, m], dtype=complex)
+    eigen_modes = np.zeros([n, m, m], dtype=complex)
 
+    # calculates encounter frequency corresponding to each wave frequency and the vessel velocity and wave heading
+    encounter_frequencies = wave_frequencies + velocity/g*np.cos(np.deg2rad(heading))*np.power(wave_frequencies, 2)
+
+    index_nat_freq = np.zeros([1, m])  # containing index of natural frequency that is closest to the encounter frequency it is calculated from
+    diff_nat_encounter_freq = np.zeros([n, m])
+
+    for i in range(n):
+        nat_frequencies[i], eigen_modes[i] = la.eig(restoring[i], mass + added_mass[i])
+
+    return nat_frequencies, eigen_modes, wave_frequencies
+
+
+if __name__ == "__main__":
+    from read_re7_file import read_re7_file
+
+    '''
     # Mass matrix
     M = np.array([[1.0000, 0.0000, 0.0000, 0.0000],
                   [0.0000, 2.0000, 0.0000, 0.0000],
@@ -162,7 +182,6 @@ if __name__ == "__main__":
     print(V)
     print()
 
-
     print('v1 = ', eigenvectors[:, 0])
     print('v2 = ', eigenvectors[:, 1])
     print('v3 = ', eigenvectors[:, 2])
@@ -178,4 +197,15 @@ if __name__ == "__main__":
     print('magnitude of v1 is ', np.linalg.norm(eigenvectors[:, 0]))
     print('magnitude of v2 is ', np.linalg.norm(eigenvectors[:, 1]))
     print('magnitude of v3 is ', np.linalg.norm(eigenvectors[:, 2]))
-    print('magnitude of v4 is ', np.linalg.norm(eigenvectors[:, 3]))
+    print('magnitude of v4 is ', np.linalg.norm(eigenvectors[:, 3]))'''
+
+    # Test iterate_natural_frequencies(omegas, velocity, heading, added_mass, restoring):
+    VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ = read_re7_file("Input files/test_input.re7")
+
+    # indices
+    iheading = 0
+    ivel = 0
+
+    nat_frequencies, eigen_modes, wave_frequencies = iterate_natural_frequencies(FREQ, VEL[ivel], HEAD[iheading], ADDMAS[ivel, iheading, :, :, :], VMAS, REST[ivel, iheading, :, :, :])
+
+    print(nat_frequencies[14])
