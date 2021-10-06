@@ -90,6 +90,44 @@ def decouple_matrix(mat_in, elem):
 
     return mat_out
 
+def cushion_terms(gamma, rho, g, h, h_b, p_0, p_a, Q_0, dQdp0, S_0):
+    """
+    Calculates and returns terms in the coupled equations due to the air cushion.
+
+    :param gamma: [-] ratio of specific heat for air
+    :param rho: [kg/m^3] density of water
+    :param g: [m/s^2] gravity
+    :param h: [m] difference of mean water level inside and outside the air cushion
+    :param h_b: [m] distance from water level inside air cushion to the hull
+    :param p_0: [Pa] excess pressure inside the air cushion
+    :param p_a: [Pa] atmospheric pressure
+    :param Q_0: [m^3/s] mean volume flow of the fan
+    :param dQdp0: # [(m^3s^-1)/(Pa)] Slope of fan characteristic curve estimated from Figure 5.6 in Faltinsen High-Speed
+    :param S_0: # [m^2] Area of the waterline inside the air cushion
+    :return:
+    """
+    # TODO: Should the function take an array of Q and P(fan characteristics) or just get the interpolated value?
+    C_cushion = np.zeros([7, 7])  # initialize stiffness matrix to contain cushion terms
+    B_cushion = np.zeros([7, 7])  # initialize damping matrix to contain cushion terms
+
+    K_1 = p_0*h_b*S_0/(gamma*(p_0 + p_a))
+    K_2 = 0.5*Q_0 - p_0*dQdp0
+    A_0 = S_0  # [m^2] mean free surface area
+    A_1 = 0  # [m^3](?) longitudinal moment of area of the cushion
+
+    # insert terms in matrices in the continuity of air equation, see p. 21 in VERES SES Manual
+    B_cushion[6, 2] = A_0
+    B_cushion[6, 4] = -A_1
+    B_cushion[6, 6] = K_1
+    C_cushion[6, 6] = K_2
+
+    # hydrostatic terms coming from the air cushion, see p. 15 in VERES SES Manual
+    # TODO: Investigate these terms
+    C_cushion[2, 6] = 0
+    C_cushion[4, 6] = 0
+
+
+    return C_cushion, B_cushion
 
 if __name__ == "__main__":
 
