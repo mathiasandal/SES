@@ -20,10 +20,17 @@ FORCE = REFORCE + 1j*IMFORCE
 # Gets the complex amplitude of the response eta_j, j = 1,...,6
 eta = solve_eq_motion_steady_state(VMAS + ADDMAS[0, 0, 0, :, :], DAMP[0, 0, 0, :, :], REST[0, 0, 0, :, :], FORCE[:, 0, 0, 0], FREQ1[0])
 
-K = REST[0, 0, 14, :, :]
-M = VMAS + ADDMAS[0, 0, 14, :, :]
+# Frequency index
+freq_index = 14
+
+K = REST[0, 0, freq_index, :, :]
+A = ADDMAS[0, 0, freq_index, :, :]
+M = VMAS + A
+B = DAMP[0, 0, freq_index, :, :]
 # Calculates eigenvalues and eigenmodes
 D, V = la.eig(K, M)  # The warning 'Too many values to unpack do not affect D and V'
+
+print(V)
 
 # Decouple the matrices as surge, heave and pitch is decoupled from sway, roll and yaw due to symmetry
 K_surge_heave_pitch = decouple_matrix(K, [0, 2, 4])
@@ -32,6 +39,7 @@ M_surge_heave_pitch = decouple_matrix(M, [0, 2, 4])
 # Decouple the matrices for heave and pitch
 K_heave_pitch = decouple_matrix(K, [2, 4])
 M_heave_pitch = decouple_matrix(M, [2, 4])
+B_heave_pitch = decouple_matrix(B, [2, 4])
 
 D_surge_heave_pitch, V_surge_heave_pitch = la.eig(K_surge_heave_pitch, M_surge_heave_pitch)
 
@@ -50,10 +58,14 @@ print(np.round(D_heave_pitch, 1))
 print()
 print(np.round(V_heave_pitch, 1))
 
-print()
+print('K:')
 print(K_surge_heave_pitch)
-print()
+print('M:')
 print(M_surge_heave_pitch)
+print('B:')
+print(B_heave_pitch)
+print('Natural frequency in heave = ', np.sqrt(K[2, 2]/M[2, 2]))
+print('Frequency:', FREQ1[freq_index], 'rad/s')
 
 '''
 print(np.sqrt(D[2]))
