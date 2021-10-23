@@ -1,15 +1,39 @@
 import numpy as np
 
-def stiffness_matrix_air_cushion():
+def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
+    #TODO: Finish documentation for this function
+    """
+    :param S_0c:
+    :param h:
+    :param x_c:
+    :param z_c:
+    :param Q_0:
+    :param dQdp_0:
+    :param p_0:
+    :param rho:
+    :param g:
+    :return:
+    """
     # Initialize stiffness matrix due to air cushion
     C_c = np.zeros([7, 7])
+
+    # Calculate and add terms to stiffness matrix. (See power point)
+    C_c[6, 6] = 0.5*Q_0 - p_0*dQdp_0
+    C_c[4, 4] =  rho * g * h * S_0c * z_c
+    C_c[2, 6] = -rho * g * h * S_0c
+    C_c[4, 6] =  rho * g * h * S_0c * x_c
 
     return C_c
 
 
-def damping_matrix_air_cushion():
+def damping_matrix_air_cushion(S_0c, x_c, h, p_0, p_a=101325, gamma=1.4):
     # Initialize damping matrix due to air cushion
     B_c = np.zeros([7, 7])
+
+    # Calculate and add terms to damping matrix. (See power point)
+    B_c[6, 6] = p_0*h*S_0c/gamma/(p_0 + p_a)
+    B_c[6, 4] = S_0c*x_c  # TODO: Find out what this should be
+    B_c[6, 2] = S_0c
 
     return B_c
 
@@ -22,8 +46,8 @@ def air_cushion_area(l_rect, l_tri, b_c):
             |________l_rect_____| |__l_tri_|
     _        ____________________
     |       |                      *
-    |       |                         *
-    b_c     |       Air cushion          >
+    |       |       Air cushion       *
+    b_c     |             x              >
     |       |                         *
     _       |____________________ *
 
@@ -55,6 +79,15 @@ def air_cushion_area(l_rect, l_tri, b_c):
     x_c = (A_rect*0.5*l_rect + A_tri*(l_rect + l_tri/3))/S_0c
 
     return S_0c, x_c
+
+
+def interpolate_fan_characteristics(p_0, fan_char):
+    # TODO: Implement
+    Q_0 = 0
+    dQdp_0 = 0
+
+    return Q_0, dQdp_0
+
 
 
 if __name__ == "__main__":
