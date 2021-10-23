@@ -89,7 +89,6 @@ def interpolate_fan_characteristics(p_0, fan_char):
     return Q_0, dQdp_0
 
 
-
 if __name__ == "__main__":
 
     # TODO: need to find what these actually are
