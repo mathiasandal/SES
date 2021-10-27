@@ -112,7 +112,7 @@ def interpolate_fan_characteristics(p_0, p, Q):
     dQdp_0: double
         Slope of the fan characteristics in the vicinity of the equilibrium
     """
-
+    # TODO: Fails to interpolate the correct Q. Need to understand why.
     Q_0 = np.interp(p_0, p, Q)  # Interpolates volume flow
 
     dQdp_0 = 0  # initialize slope of fan characteristics
@@ -173,7 +173,7 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
 
     Q = df[['x']].to_numpy()  # gets all Q values from the DataFrame
 
-    P = df[[rpm]]
+    P = df[[rpm]].to_numpy()  # gets all P values from the DataFrame
 
     Q_cut = Q[-1]
     # Cuts the arrays where they intersect P = 0 [Pa]. Found by inspecting fan characteristics manually
@@ -197,12 +197,15 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
 
 if __name__ == "__main__":
 
+    '''
+    # Testing find_closest_value(...) 
     arr = np.array([1, 2, 3, 4, 5, 5.5, 6, 8, 10])
     val = 5.6
 
     closest, index_closest = find_closest_value(arr, val)
     print(arr)
     print('Closest:', closest, '\nIndex:', index_closest)
+    '''
 
     # TODO: need to find what these actually are
     l_rect = 9  # [m] length of the rectangular part of the air cushion
@@ -219,7 +222,8 @@ if __name__ == "__main__":
 
     #print('Total air cushion area is', S_0c, '[m^2].')
     #print('The centroid of the air cushion is located', x_c, '[m] in front of AP.')
-
+    '''
+    #Testing interpolation fro known functions
     p = np.linspace(1, 400, 10)
     #Q = 200*np.power(p + 1, -1)
     Q = 1/200*np.power(p, 2)
@@ -232,25 +236,28 @@ if __name__ == "__main__":
 
     Q_0exact = 1/200*p_0**2
     dQdp_0exact = 1/100*p_0
+    '''
+    Q, P, rpm_dummy = read_fan_characteristics('Input files/fan characteristics/fan characteristics.csv')
+
+    plt.plot(P, Q)
+    plt.show()
 
     # use interpolation function
-    Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, p, Q)
+    Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
 
     # plotting results
-    plt.plot(p, Q, '-x', label='Q(P)')
-    plt.plot(p, Q_0 + dQdp_0*(p - p_0), 'r', label='Numerical tangent')
-    plt.plot(p, Q_0exact + dQdp_0exact*(p - p_0), 'b', label='Exact tangent')
+    plt.plot(P, Q, '-x', label='Q(P)')
+    plt.plot(P, Q_0 + dQdp_0*(P - p_0), 'r', label='Numerical tangent')
+    #plt.plot(p, Q_0exact + dQdp_0exact*(p - p_0), 'b', label='Exact tangent')
     plt.xlabel('P')
     plt.ylabel('Q')
     plt.legend(loc='upper right')
     plt.show()
 
-
-
     print('Numerical result:')
     print('Q_0 \t=\t', Q_0, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0, '[(m^3s^-1)/(Pa)]')
-    print('Exact:')
-    print('Q_0 \t=\t', Q_0exact, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0exact, '[(m^3s^-1)/(Pa)]')
+    #print('Exact:')
+    #print('Q_0 \t=\t', Q_0exact, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0exact, '[(m^3s^-1)/(Pa)]')
 
     # computes stiffness matrix
     C_c = stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0)
