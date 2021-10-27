@@ -1,14 +1,15 @@
 import numpy as np
-"""
-Reads a *.re8 file created by VERES
-
-A description of a *.re8 file is found in page 116 of the ShipX Vessel Responses (VERES) User's manual.
-
-Only works for High-Speed formulation in VERES
-"""
 
 
 def read_re8_file(filename):
+    """
+    Reads a *.re8 file created by VERES
+
+    A description of a *.re8 file is found in page 116 of the ShipX Vessel Responses (VERES) User's manual.
+
+    Only works for High-Speed formulation in VERES
+    """
+
     f = open(filename, 'r')
 
     for i in range(6):  # skips first six lines

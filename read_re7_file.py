@@ -1,13 +1,13 @@
 import numpy as np
 
-"""
-Reads a *.re7 file created by VERES
-
-A description of a *.re7 file is found in page 114 of the ShipX Vessel Responses (VERES) User's manual.
-"""
-
 
 def read_re7_file(filename):
+    """
+    Reads a *.re7 file created by VERES
+
+    A description of a *.re7 file is found in page 114 of the ShipX Vessel Responses (VERES) User's manual.
+    """
+
     f = open(filename, "r")  # open file for reading
 
     for i in range(6):  # skips first six lines
