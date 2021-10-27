@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as ps
+import pandas as pd
 import matplotlib.pyplot as plt
 
 def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
@@ -162,10 +162,38 @@ def find_closest_value(arr, val):
 
     return closest_value, index_closest
 
-def read_fan_characteristics(filename):
-    #TODO: Implement
 
-    return 0
+def read_fan_characteristics(filename, rpm='1800rpm'):
+    # Todo: Document this function
+
+    if rpm not in ['1000rpm', '1400rpm', '1600rpm', '1800rpm', '2108rpm']:
+        raise TypeError
+
+    df = pd.read_csv(filename)
+
+    Q = df[['x']].to_numpy()  # gets all Q values from the DataFrame
+
+    P = df[[rpm]]
+
+    Q_cut = Q[-1]
+    # Cuts the arrays where they intersect P = 0 [Pa]. Found by inspecting fan characteristics manually
+    if rpm == '1000rpm':
+        Q_cut = 12
+    elif rpm == '1400rpm':
+        Q_cut = 17
+    elif rpm == '1600rpm':
+        Q_cut = 19
+    elif rpm == '1800rpm':
+        Q_cut = 21.6
+    elif rpm == '2108rpm':
+        Q_cut = 25.5
+
+    # Remove interval that is no well defined
+    P = P[Q < Q_cut]
+    Q = Q[Q < Q_cut]
+
+    return Q, P, rpm
+
 
 if __name__ == "__main__":
 
@@ -233,3 +261,24 @@ if __name__ == "__main__":
     B_c = damping_matrix_air_cushion(S_0c, x_c, h, p_0)
     #print('Damping matrix:')
     #print(B_c)
+
+    # testing read_fan_characteristics
+    '''
+    data = read_fan_characteristics("Input files/fan characteristics/fan characteristics.csv")
+
+    print(data[['x']].to_numpy())
+
+    Q = data[['x']].to_numpy()
+    P = data[['1000rpm']].to_numpy()
+    '''
+
+    rpms = ['1000rpm', '1400rpm', '1600rpm', '1800rpm', '2108rpm']
+
+    for rpm in rpms:
+        Q, P, rpm_plot = read_fan_characteristics("Input files/fan characteristics/fan characteristics.csv", rpm)
+        plt.plot(Q, P, label=rpm_plot)
+    plt.title('Fan characteristics')
+    plt.ylabel('P [Pa]')
+    plt.xlabel('Q [m^3/s]')
+    plt.legend(loc='upper right')
+    plt.show()
