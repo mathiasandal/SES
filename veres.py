@@ -4,6 +4,7 @@ import numpy as np
 
 
 def read_re7_file(filename):
+    # TODO: Fix/add documentation
     """
     Reads a *.re7 file created by VERES
 
@@ -85,7 +86,9 @@ def read_re7_file(filename):
                 VISCDL[i, j, k], VISCDN[i, j, k], VISCDNL[i, j, k] = [float(i) for i in f.readline().split()]
     return VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ
 
+
 def read_re8_file(filename):
+    # TODO: Fix/add documentation
     """
     Reads a *.re8 file created by VERES
 
@@ -135,6 +138,7 @@ def read_re8_file(filename):
                     REFORCE[m, k, j, i], IMFORCE[m, k, j, i] = [float(m) for m in f.readline().split()][1:]
 
     return REFORCE, IMFORCE, VEL, HEAD, FREQ
+
 
 if __name__ == "__main__":
     REFORCE, IMFORCE, VEL, HEAD, FREQ = read_re8_file('Input files/test_input.re8')
