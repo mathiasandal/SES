@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as ps
 import matplotlib.pyplot as plt
 
 def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
@@ -161,6 +162,10 @@ def find_closest_value(arr, val):
 
     return closest_value, index_closest
 
+def read_fan_characteristics(filename):
+    #TODO: Implement
+
+    return 0
 
 if __name__ == "__main__":
 
