@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
+
 def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
     """
     Creates and returns the stiffness matrix containing all terms arising because of the air cushion
@@ -42,6 +43,27 @@ def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, 
 
 
 def damping_matrix_air_cushion(S_0c, x_c, h, p_0, p_a=101325, gamma=1.4):
+    """
+    Creates and returns the damping matrix containing all terms arising because of the air cushion.
+
+    :param S_0c: (float)
+        Total area of the air cushion
+    :param x_c: (float)
+        Distance from centroid to AP
+    :param h: (float)
+        Mean height between waterline and hull inside air cushion
+    :param p_0: (float)
+        Pressure in the air cushion at the equilibrium
+    :param p_a: (float)
+        Atmospheric pressure
+    :param gamma: (float)
+        Specific heat ratio of air
+    :return:
+    C_c: (7x7) numpy array
+        Damping matrix containing all terms from air cushion
+    """
+
+
     # Initialize damping matrix due to air cushion
     B_c = np.zeros([7, 7])
 
@@ -81,7 +103,6 @@ def air_cushion_area(l_rect, l_tri, b_c):
         Total area of the air cushion
     x_c: double
         Distance from centroid to AP
-
     """
 
     A_rect = b_c * l_rect  # [m^2] area of rectangle
