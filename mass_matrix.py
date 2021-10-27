@@ -1,6 +1,8 @@
 import numpy as np
 
 
+# TODO: Get control of the location of the center of gravity relative to the ShipX coordinate system.
+
 def create_mass_matrix(total_mass, r44, r55, r66):
 
     """
