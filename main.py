@@ -1,5 +1,4 @@
-from read_re8_file import read_re8_file
-from read_re7_file import read_re7_file
+from veres import read_re7_file, read_re8_file
 from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix
 
 import matplotlib.pyplot as plt
