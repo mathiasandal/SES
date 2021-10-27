@@ -148,7 +148,7 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
 
 
 if __name__ == "__main__":
-    from read_re7_file import read_re7_file
+    from veres import read_re7_file
 
     '''
     # Mass matrix
