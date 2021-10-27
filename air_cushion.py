@@ -34,7 +34,7 @@ def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, 
     C_c = np.zeros([7, 7])
 
     # Calculate and add terms to stiffness matrix. (See power point)
-    C_c[6, 6] = 0.5*Q_0 - p_0*dQdp_0
+    C_c[6, 6] = 0.5 * Q_0 - p_0 * dQdp_0
     C_c[4, 4] = rho * g * h * S_0c * z_c
     C_c[2, 6] = -rho * g * h * S_0c
     C_c[4, 6] = rho * g * h * S_0c * x_c
@@ -63,13 +63,12 @@ def damping_matrix_air_cushion(S_0c, x_c, h, p_0, p_a=101325, gamma=1.4):
         Damping matrix containing all terms from air cushion
     """
 
-
     # Initialize damping matrix due to air cushion
     B_c = np.zeros([7, 7])
 
     # Calculate and add terms to damping matrix. (See power point)
-    B_c[6, 6] = p_0*h*S_0c/gamma/(p_0 + p_a)
-    B_c[6, 4] = S_0c*x_c  # TODO: Find out what this should be
+    B_c[6, 6] = p_0 * h * S_0c / gamma / (p_0 + p_a)
+    B_c[6, 4] = S_0c * x_c  # TODO: Find out what this should be
     B_c[6, 2] = S_0c
 
     return B_c
@@ -112,7 +111,7 @@ def air_cushion_area(l_rect, l_tri, b_c):
     S_0c = A_rect + A_tri  # [m^2] total area of air cushion
 
     # computes distance from AP to centroid
-    x_c = (A_rect*0.5*l_rect + A_tri*(l_rect + l_tri/3))/S_0c
+    x_c = (A_rect * 0.5 * l_rect + A_tri * (l_rect + l_tri / 3)) / S_0c
 
     return S_0c, x_c
 
@@ -145,13 +144,20 @@ def interpolate_fan_characteristics(p_0, p, Q):
 
     # Applies a central finite difference to estimate the slope near the working position (p_0, Q_0)
     if p_0_closest == p_0:
-        dQdp_0 = (Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1])/(p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
+        dQdp_0 = (Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
+                    p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
     elif p_0_closest < p_0:
-        alpha = (p_0 - p[p_0_closest_index - 1])/(p[p_0_closest_index] - p[p_0_closest_index - 1])
-        dQdp_0 = (1-alpha)*(Q[p_0_closest_index] - Q[p_0_closest_index - 2])/(p[p_0_closest_index] - p[p_0_closest_index - 2]) + alpha*(Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1])/(p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
+        alpha = (p_0 - p[p_0_closest_index - 1]) / (p[p_0_closest_index] - p[p_0_closest_index - 1])
+        dQdp_0 = (1 - alpha) * (Q[p_0_closest_index] - Q[p_0_closest_index - 2]) / (
+                    p[p_0_closest_index] - p[p_0_closest_index - 2]) + alpha * (
+                             Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
+                             p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
     elif p_0_closest > p_0:
         alpha = (p_0 - p[p_0_closest_index]) / (p[p_0_closest_index + 1] - p[p_0_closest_index])
-        dQdp_0 = (1-alpha)*(Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1])/(p[p_0_closest_index + 1] - p[p_0_closest_index - 1]) + alpha*(Q[p_0_closest_index + 2] - Q[p_0_closest_index])/(p[p_0_closest_index + 2] - p[p_0_closest_index])
+        dQdp_0 = (1 - alpha) * (Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
+                    p[p_0_closest_index + 1] - p[p_0_closest_index - 1]) + alpha * (
+                             Q[p_0_closest_index + 2] - Q[p_0_closest_index]) / (
+                             p[p_0_closest_index + 2] - p[p_0_closest_index])
 
     return Q_0, dQdp_0
 
@@ -173,7 +179,7 @@ def find_closest_value(arr, val):
 
     n = len(arr)
     index_closest = 0
-    diff_closest = abs(100*arr[-1] + val)
+    diff_closest = abs(100 * arr[-1] + val)
 
     for i in range(n):
 
@@ -233,46 +239,21 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
 
 if __name__ == "__main__":
 
-    '''
-    # Testing find_closest_value(...) 
-    arr = np.array([1, 2, 3, 4, 5, 5.5, 6, 8, 10])
-    val = 5.6
-
-    closest, index_closest = find_closest_value(arr, val)
-    print(arr)
-    print('Closest:', closest, '\nIndex:', index_closest)
-    '''
-
     # TODO: need to find what these actually are
     l_rect = 9  # [m] length of the rectangular part of the air cushion
     l_tri = 10  # [m] length of the triangular part of the air cushion
     b_c = 4  # [m] beam of the air cushion
 
     h = 0.4  # [m] mean height between waterline and hull inside air cushion
-    z_c = 0.5*h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+    z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
     p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
     # computes air cushion area
     S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
 
-    #print('Total air cushion area is', S_0c, '[m^2].')
-    #print('The centroid of the air cushion is located', x_c, '[m] in front of AP.')
-    '''
-    #Testing interpolation fro known functions
-    p = np.linspace(1, 400, 10)
-    #Q = 200*np.power(p + 1, -1)
-    Q = 1/200*np.power(p, 2)
-
-    p_0 = 200
-
-    # computes exact values
-    #Q_0exact = 200/(p_0 + 1)
-    #dQdp_0exact = -200/(p_0 + 1)**2
-
-    Q_0exact = 1/200*p_0**2
-    dQdp_0exact = 1/100*p_0
-    '''
+    print('Total air cushion area is', S_0c, '[m^2].')
+    print('The centroid of the air cushion is located', x_c, '[m] in front of AP.')
 
     # Read fan charcateristics from at a specified constant RPM
     Q, P, rpm_dummy = read_fan_characteristics('Input files/fan characteristics/fan characteristics.csv')
@@ -282,45 +263,33 @@ if __name__ == "__main__":
 
     # plotting results
     plt.plot(P, Q, '-x', label='Q(P)')
-    plt.plot(P, Q_0 + dQdp_0*(P - p_0), 'r', label='Numerical tangent')
-    plt.plot(p_0, Q_0,'k*', label='(p_0, Q_0)')
-    #plt.plot(p, Q_0exact + dQdp_0exact*(p - p_0), 'b', label='Exact tangent')
-    plt.xlabel('P')
-    plt.ylabel('Q')
+    plt.plot(P, Q_0 + dQdp_0 * (P - p_0), 'r', label='Numerical tangent')
+    plt.plot(p_0, Q_0, 'k*', label='(p_0, Q_0)')
+    plt.xlabel('P [Pa]')
+    plt.ylabel('Q [m^3/s]')
     plt.legend(loc='upper right')
     plt.title('Fan characteristics at ' + rpm_dummy[0:-3] + ' RPM')
     plt.show()
 
     print('Numerical result:')
     print('Q_0 \t=\t', Q_0, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0, '[(m^3s^-1)/(Pa)]')
-    #print('Exact:')
-    #print('Q_0 \t=\t', Q_0exact, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0exact, '[(m^3s^-1)/(Pa)]')
 
     # computes stiffness matrix
     C_c = stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0)
-    #print('Stiffness matrix:')
-    #print(C_c)
+    print('Stiffness matrix:')
+    print(C_c)
 
     # computes damping matrix
     B_c = damping_matrix_air_cushion(S_0c, x_c, h, p_0)
-    #print('Damping matrix:')
-    #print(B_c)
-
-    # testing read_fan_characteristics
-    '''
-    data = read_fan_characteristics("Input files/fan characteristics/fan characteristics.csv")
-
-    print(data[['x']].to_numpy())
-
-    Q = data[['x']].to_numpy()
-    P = data[['1000rpm']].to_numpy()
-    '''
+    print('Damping matrix:')
+    print(B_c)
 
     rpms = ['1000rpm', '1400rpm', '1600rpm', '1800rpm', '2108rpm']
 
     for rpm in rpms:
         Q, P, rpm_plot = read_fan_characteristics("Input files/fan characteristics/fan characteristics.csv", rpm)
         plt.plot(Q, P, label=rpm_plot)
+
     plt.title('Fan characteristics')
     plt.ylabel('P [Pa]')
     plt.xlabel('Q [m^3/s]')
