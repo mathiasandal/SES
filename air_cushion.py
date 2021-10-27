@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 
 def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
     """
@@ -113,7 +114,8 @@ def interpolate_fan_characteristics(p_0, p, Q):
         Slope of the fan characteristics in the vicinity of the equilibrium
     """
     # TODO: Fails to interpolate the correct Q. Need to understand why.
-    Q_0 = np.interp(p_0, p, Q)  # Interpolates volume flow
+    # Q_0 = np.interp(p_0, p, Q)  # Interpolates volume flow # This did not seem to work
+    Q_0 = float(interp1d(p, Q)(p_0))  # This works at least for the first test
 
     dQdp_0 = 0  # initialize slope of fan characteristics
 
@@ -164,11 +166,24 @@ def find_closest_value(arr, val):
 
 
 def read_fan_characteristics(filename, rpm='1800rpm'):
-    # Todo: Document this function
+    """
+    Reads a csv-file containing the fan characteristics and returns it for a give RPM.
+
+    :param filename: str
+        Directory of the csv file containing the fan characteristics.
+    :param rpm: str
+        String specifying which RPM that should be used.
+    :return:
+    Q: (nx1) numpy array
+        Volume flow values for fan characteristic curve
+    P: (nx1) numpy array
+        Pressure values for fan characteristic curve
+    """
 
     if rpm not in ['1000rpm', '1400rpm', '1600rpm', '1800rpm', '2108rpm']:
         raise TypeError
 
+    # Reads csv-file and saves it as a pandas DataFrame
     df = pd.read_csv(filename)
 
     Q = df[['x']].to_numpy()  # gets all Q values from the DataFrame
@@ -237,10 +252,9 @@ if __name__ == "__main__":
     Q_0exact = 1/200*p_0**2
     dQdp_0exact = 1/100*p_0
     '''
-    Q, P, rpm_dummy = read_fan_characteristics('Input files/fan characteristics/fan characteristics.csv')
 
-    plt.plot(P, Q)
-    plt.show()
+    # Read fan charcateristics from at a specified constant RPM
+    Q, P, rpm_dummy = read_fan_characteristics('Input files/fan characteristics/fan characteristics.csv')
 
     # use interpolation function
     Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
@@ -248,10 +262,12 @@ if __name__ == "__main__":
     # plotting results
     plt.plot(P, Q, '-x', label='Q(P)')
     plt.plot(P, Q_0 + dQdp_0*(P - p_0), 'r', label='Numerical tangent')
+    plt.plot(p_0, Q_0,'k*', label='(p_0, Q_0)')
     #plt.plot(p, Q_0exact + dQdp_0exact*(p - p_0), 'b', label='Exact tangent')
     plt.xlabel('P')
     plt.ylabel('Q')
     plt.legend(loc='upper right')
+    plt.title('Fan characteristics at ' + rpm_dummy[0:-3] + ' RPM')
     plt.show()
 
     print('Numerical result:')
