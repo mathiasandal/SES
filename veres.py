@@ -140,9 +140,40 @@ def read_re8_file(filename):
     return REFORCE, IMFORCE, VEL, HEAD, FREQ
 
 
+def read_veres_input(path):
+    # TODO: Add documentation
+
+    VMAS, ADDMAS, DAMP, REST, VEL_re7, HEAD_re7, FREQ_re7 = read_re7_file(path + '//input.re7')
+
+    REFORCE, IMFORCE, VEL_re8, HEAD_re8, FREQ_re8 = read_re8_file(path + '//input.re8')
+
+    A_h = ADDMAS
+    B_h = DAMP
+    C_h = REST
+    F_ex_real = REFORCE
+    F_ex_im = IMFORCE
+
+    if VEL_re7.all() == VEL_re8.all() and HEAD_re7.all() == HEAD_re8.all() and FREQ_re7.all() == FREQ_re8.all():
+        VEL = VEL_re7
+        HEAD = HEAD_re7
+        FREQ = FREQ_re7
+    else:
+        raise ValueError
+
+    return A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ
+
+
 if __name__ == "__main__":
+    path_veres = 'Input files//Veres input files'
+
+    A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ = read_veres_input(path_veres)
+
+    print(A_h)
+
+    '''
     REFORCE, IMFORCE, VEL, HEAD, FREQ = read_re8_file('Input files/test_input.re8')
 
     VMAS, ADDMAS, DAMP, REST, VEL7, HEAD7, FREQ7 = read_re7_file("Input files/test_input.re7")
 
     print(REFORCE[0, 0, 0, 0])
+    '''
