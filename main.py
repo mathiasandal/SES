@@ -1,96 +1,56 @@
-from veres import read_re7_file, read_re8_file
+from veres import read_veres_input
+from air_cushion import read_fan_characteristics, air_cushion_area, interpolate_fan_characteristics, damping_matrix_air_cushion, stiffness_matrix_air_cushion
+from mass_matrix import create_mass_matrix
 from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix
 
 import matplotlib.pyplot as plt
 import scipy.linalg as la
 import numpy as np
 
-# Read *re7 file
-VMAS, ADDMAS, DAMP, REST, VEL1, HEAD1, FREQ1 = read_re7_file("Input files/test_input.re7")
 
-# Read *re8 file
-REFORCE, IMFORCE, VE2L, HEAD2, FREQ2 = read_re8_file('Input files/test_input.re8')
+# Read input from .re7 an .re8 files
+path_veres = 'Input files//Veres input files'
+A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ = read_veres_input(path_veres)
 
-FORCE = REFORCE + 1j*IMFORCE
+# Read fan characteristics
+Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')
 
-#print(REFORCE[:, 0, 0, 0] + 1j*IMFORCE[:, 0, 0, 0])
-#print(FORCE[:, 0, 0, 0])
+# Air cushion input variables
+l_rect = 9  # [m] length of the rectangular part of the air cushion
+l_tri = 10  # [m] length of the triangular part of the air cushion
+b_c = 4  # [m] beam of the air cushion
 
-# Gets the complex amplitude of the response eta_j, j = 1,...,6
-eta = solve_eq_motion_steady_state(VMAS + ADDMAS[0, 0, 0, :, :], DAMP[0, 0, 0, :, :], REST[0, 0, 0, :, :], FORCE[:, 0, 0, 0], FREQ1[0])
+h = 0.4  # [m] mean height between waterline and hull inside air cushion
+z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
-# Frequency index
-freq_index = 14
+p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
-K = REST[0, 0, freq_index, :, :]
-A = ADDMAS[0, 0, freq_index, :, :]
-M = VMAS + A
-B = DAMP[0, 0, freq_index, :, :]
-# Calculates eigenvalues and eigenmodes
-D, V = la.eig(K, M)  # The warning 'Too many values to unpack do not affect D and V'
+S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
 
-print(D)
+Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
 
-# Decouple the matrices as surge, heave and pitch is decoupled from sway, roll and yaw due to symmetry
-K_surge_heave_pitch = decouple_matrix(K, [0, 2, 4])
-M_surge_heave_pitch = decouple_matrix(M, [0, 2, 4])
+# Create damping and stiffness matrix from air cushion
+B_c = damping_matrix_air_cushion(S_0c, x_c, h, p_0)  # Damping
+C_c = stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0)  # Stiffness
 
-# Decouple the matrices for heave and pitch
-K_heave_pitch = decouple_matrix(K, [2, 4])
-M_heave_pitch = decouple_matrix(M, [2, 4])
-B_heave_pitch = decouple_matrix(B, [2, 4])
+# Create mass matrix
+# main dimensions of BBGreen
+beam = 6  # [m] beam of BBGreen
+Lpp = 19.4  # [m] L_pp of BBGreen
+total_mass = 25.6e3  # [kg] total mass of the vessel
+r44 = 0.35 * beam  # [m] radii of gyration in roll
+r55 = 0.25 * Lpp  # [m] radii of gyration in pitch
+r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
 
-D_surge_heave_pitch, V_surge_heave_pitch = la.eig(K_surge_heave_pitch, M_surge_heave_pitch)
+# Creates mass matrix
+M = create_mass_matrix(total_mass, r44, r55, r66)
 
-D_heave_pitch, V_heave_pitch = la.eig(K_heave_pitch, M_heave_pitch)
+# Collect stiffness matrices
+C = C_h + C_c
 
-print('For all degrees of freedom:')
-print(np.round(D, 1))
-print()
-print(np.round(V, 1))
-print('For surge, heave and pitch only:')
-print(np.round(D_surge_heave_pitch, 1))
-print()
-print(np.round(V_surge_heave_pitch, 1))
-print('For heave and pitch only:')
-print(np.round(D_heave_pitch, 1))
-print()
-print(np.round(V_heave_pitch, 1))
+# Decouple matrices to (3x3) containing heave, pitch and cushion pressure
 
-print('K:')
-print(K_surge_heave_pitch)
-print('M:')
-print(M_surge_heave_pitch)
-print('B:')
-print(B_heave_pitch)
-print('Natural frequency in heave = ', np.sqrt(K[2, 2]/M[2, 2]))
-print('Frequency:', FREQ1[freq_index], 'rad/s')
 
-'''
-print(np.sqrt(D[2]))
-print()
-print(np.round(V, 2))
-print()
-print(np.round(np.abs(V), 2))
-'''
+# Compute natural frequencies and eigenmodes
+# Iterate through frequencies to find the true natural frequencies
 
-'''
-# Plotting coefficients
-plt.plot(FREQ1, REST[0, 0, :, 2, 2], 'x-')
-plt.xlabel("omega rad/s")
-plt.ylabel("C_33")
-plt.grid()
-plt.show()
-
-plt.plot(FREQ1, DAMP[0, 0, :, 2, 2], 'x-')
-plt.xlabel("wave frequency [rad/s]")
-plt.ylabel("B_33")
-plt.grid()
-plt.show()
-
-plt.plot(FREQ1, REFORCE[2, :, 0, 0], 'x-')
-plt.xlabel("wave frequency [rad/s]")
-plt.ylabel("Force in heave [N/m]")
-plt.grid()
-plt.show()
-'''
