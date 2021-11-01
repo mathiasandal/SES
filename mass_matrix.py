@@ -4,7 +4,7 @@ import numpy as np
 # TODO: Get control of the location of the center of gravity relative to the ShipX coordinate system.
 
 def create_mass_matrix(total_mass, r44, r55, r66):
-
+    # TODO: Get control of cross terms (I35 and I53)
     """
     Generates mass matrix for a SES-X vessel including all rigid body motions and uniform pressure
 

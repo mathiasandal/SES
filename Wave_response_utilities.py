@@ -144,7 +144,7 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
     for i in range(n):
         nat_frequencies[i], eigen_modes[i] = la.eig(restoring[i], mass + added_mass[i])
 
-    return nat_frequencies, eigen_modes, wave_frequencies
+    return nat_frequencies, eigen_modes, wave_frequencies, encounter_frequencies
 
 
 if __name__ == "__main__":
@@ -206,6 +206,6 @@ if __name__ == "__main__":
     iheading = 0
     ivel = 0
 
-    nat_frequencies, eigen_modes, wave_frequencies = iterate_natural_frequencies(FREQ, VEL[ivel], HEAD[iheading], ADDMAS[ivel, iheading, :, :, :], VMAS, REST[ivel, iheading, :, :, :])
+    nat_frequencies, eigen_modes, wave_frequencies, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[ivel], HEAD[iheading], ADDMAS[ivel, iheading, :, :, :], VMAS, REST[ivel, iheading, :, :, :])
 
     print(nat_frequencies[14])
