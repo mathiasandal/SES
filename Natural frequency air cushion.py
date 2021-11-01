@@ -1,5 +1,5 @@
 import numpy as np
-from air_cushion import air_cushion_area, interpolate_fan_characteristics, read_fan_characteristics #, find_closest_value
+from air_cushion import air_cushion_area, interpolate_fan_characteristics, read_fan_characteristics
 
 # TODO: Make sure that the input parameters are correct
 
