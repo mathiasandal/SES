@@ -10,7 +10,7 @@ import numpy as np
 
 # Read input from .re7 an .re8 files
 path_veres = 'Input files//Veres input files'
-A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ = read_veres_input(path_veres)
+A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_input(path_veres)
 
 # Read fan characteristics
 Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')

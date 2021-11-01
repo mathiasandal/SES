@@ -84,7 +84,7 @@ def read_re7_file(filename):
 
                 # Read in viscous roll damping
                 VISCDL[i, j, k], VISCDN[i, j, k], VISCDNL[i, j, k] = [float(i) for i in f.readline().split()]
-    return VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ
+    return VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ, XMTN, ZMTN
 
 
 def read_re8_file(filename):
@@ -137,15 +137,15 @@ def read_re8_file(filename):
                 for m in range(NDOF):
                     REFORCE[m, k, j, i], IMFORCE[m, k, j, i] = [float(m) for m in f.readline().split()][1:]
 
-    return REFORCE, IMFORCE, VEL, HEAD, FREQ
+    return REFORCE, IMFORCE, VEL, HEAD, FREQ, XMTN, ZMTN
 
 
 def read_veres_input(path):
     # TODO: Add documentation
 
-    VMAS, ADDMAS, DAMP, REST, VEL_re7, HEAD_re7, FREQ_re7 = read_re7_file(path + '//input.re7')
+    VMAS, ADDMAS, DAMP, REST, VEL_re7, HEAD_re7, FREQ_re7, XMTN_re7, ZMTN_re7 = read_re7_file(path + '//input.re7')
 
-    REFORCE, IMFORCE, VEL_re8, HEAD_re8, FREQ_re8 = read_re8_file(path + '//input.re8')
+    REFORCE, IMFORCE, VEL_re8, HEAD_re8, FREQ_re8, XMTN_re8, ZMTN_re8 = read_re8_file(path + '//input.re8')
 
     A_h = ADDMAS
     B_h = DAMP
@@ -153,20 +153,23 @@ def read_veres_input(path):
     F_ex_real = REFORCE
     F_ex_im = IMFORCE
 
-    if VEL_re7.all() == VEL_re8.all() and HEAD_re7.all() == HEAD_re8.all() and FREQ_re7.all() == FREQ_re8.all():
+    if VEL_re7.all() == VEL_re8.all() and HEAD_re7.all() == HEAD_re8.all() and FREQ_re7.all() == FREQ_re8.all() and \
+            XMTN_re7.all() == XMTN_re8.all() and ZMTN_re7.all() == ZMTN_re8.all():
         VEL = VEL_re7
         HEAD = HEAD_re7
         FREQ = FREQ_re7
+        XMTN = XMTN_re7
+        ZMTN = ZMTN_re7
     else:
         raise ValueError
 
-    return A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ
+    return A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN
 
 
 if __name__ == "__main__":
     path_veres = 'Input files//Veres input files'
 
-    A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ = read_veres_input(path_veres)
+    A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_input(path_veres)
 
     print(A_h)
 
