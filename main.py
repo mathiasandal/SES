@@ -1,7 +1,7 @@
-from veres import read_veres_input
+from veres import read_veres_input, iterate_natural_frequencies
 from air_cushion import read_fan_characteristics, air_cushion_area, interpolate_fan_characteristics, damping_matrix_air_cushion, stiffness_matrix_air_cushion
 from mass_matrix import create_mass_matrix
-from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix
+from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix, add_row_and_column
 
 import matplotlib.pyplot as plt
 import scipy.linalg as la
@@ -29,9 +29,10 @@ S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
 
 Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
 
-# Create damping and stiffness matrix from air cushion
-B_c = damping_matrix_air_cushion(S_0c, x_c, h, p_0)  # Damping
-C_c = stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0)  # Stiffness
+
+# Create damping and stiffness matrix from air cushion #TODO: input should be difference between VERES coordinate system and cushion centroid
+B_c = damping_matrix_air_cushion(S_0c, x_c - XMTN, h, p_0)  # Damping
+C_c = stiffness_matrix_air_cushion(S_0c, h, x_c - XMTN, z_c - ZMTN, Q_0, dQdp_0, p_0)  # Stiffness
 
 # Create mass matrix
 # main dimensions of BBGreen
@@ -46,11 +47,15 @@ r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
 M = create_mass_matrix(total_mass, r44, r55, r66)
 
 # Collect stiffness matrices
-C = C_h + C_c
+C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
 
 # Decouple matrices to (3x3) containing heave, pitch and cushion pressure
-
+#C = decouple_matrix(C, [2, 4, 6])
 
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
 
+nat_frequencies, eigen_modes = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
+
+print(nat_frequencies)
+print(eigen_modes)
