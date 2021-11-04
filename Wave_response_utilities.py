@@ -91,6 +91,19 @@ def decouple_matrix(mat_in, elem):
 
     return mat_out
 
+
+def add_row_and_column(mat):
+    """
+    Adds a row and column with zeros to a matrix
+    :param mat:
+    :return:
+    """
+
+    n = len(mat)
+
+    return np.r_[np.c_[mat, np.zeros(n)], [np.zeros(n+1)]]
+
+
 def cushion_terms(gamma, rho, g, h, h_b, p_0, p_a, Q_0, dQdp0, S_0):
     """
     Calculates and returns terms in the coupled equations due to the air cushion.
@@ -129,6 +142,7 @@ def cushion_terms(gamma, rho, g, h, h_b, p_0, p_a, Q_0, dQdp0, S_0):
 
     return C_cushion, B_cushion
 
+''''''
 def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81):
     n = len(wave_frequencies)
     m = len(mass)
@@ -145,6 +159,10 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
         nat_frequencies[i], eigen_modes[i] = la.eig(restoring[i], mass + added_mass[i])
 
     return nat_frequencies, eigen_modes, wave_frequencies, encounter_frequencies
+
+
+#def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81):
+
 
 
 if __name__ == "__main__":
@@ -200,7 +218,7 @@ if __name__ == "__main__":
     print('magnitude of v4 is ', np.linalg.norm(eigenvectors[:, 3]))'''
 
     # Test iterate_natural_frequencies(omegas, velocity, heading, added_mass, restoring):
-    VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ = read_re7_file("Input files/test_input.re7")
+    VMAS, ADDMAS, DAMP, REST, VEL, HEAD, FREQ, XMTN, ZMTN = read_re7_file("Input files/test_input.re7")
 
     # indices
     iheading = 0
