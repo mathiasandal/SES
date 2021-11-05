@@ -195,7 +195,12 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
             C = decouple_matrix(restoring, [2, 4, 6])
             '''
             M = mass
-            A = add_row_and_column(added_mass[0, 0, index_frequency, :, :])
+
+            if m == 3:
+                A = decouple_matrix(add_row_and_column(added_mass[0, 0, index_frequency, :, :]), [2, 4, 6])
+            else:
+                A = add_row_and_column(added_mass[0, 0, index_frequency, :, :])
+
             C = restoring
 
             nat_freq_temp, eigen_modes_temp = la.eig(C, M + A)
@@ -233,12 +238,12 @@ if __name__ == "__main__":
     Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')
 
     # Air cushion input variables
-    l_rect = 9  # [m] length of the rectangular part of the air cushion
-    l_tri = 10  # [m] length of the triangular part of the air cushion
-    b_c = 4  # [m] beam of the air cushion
+    l_rect = 12  # [m] length of the rectangular part of the air cushion
+    l_tri = 6  # [m] length of the triangular part of the air cushion
+    b_c = 3.4  # [m] beam of the air cushion
 
-    h = 0.4  # [m] mean height between waterline and hull inside air cushion
-    z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+    h = 0.5  # [m] mean height between waterline and hull inside air cushion
+    z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
     p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
