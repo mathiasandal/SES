@@ -16,12 +16,12 @@ A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_inpu
 Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')
 
 # Air cushion input variables
-l_rect = 9  # [m] length of the rectangular part of the air cushion
-l_tri = 10  # [m] length of the triangular part of the air cushion
-b_c = 4  # [m] beam of the air cushion
+l_rect = 12  # [m] length of the rectangular part of the air cushion
+l_tri = 6  # [m] length of the triangular part of the air cushion
+b_c = 3.4  # [m] beam of the air cushion
 
-h = 0.4  # [m] mean height between waterline and hull inside air cushion
-z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+h = 0.5  # [m] mean height between waterline and hull inside air cushion
+z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
 p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
@@ -50,7 +50,10 @@ M = create_mass_matrix(total_mass, r44, r55, r66)
 C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
 
 # Decouple matrices to (3x3) containing heave, pitch and cushion pressure
-#C = decouple_matrix(C, [2, 4, 6])
+decouple = True
+if decouple:
+    M = decouple_matrix(M, [2, 4, 6])
+    C = decouple_matrix(C, [2, 4, 6])
 
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies

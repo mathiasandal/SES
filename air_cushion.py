@@ -239,13 +239,12 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
 
 if __name__ == "__main__":
 
-    # TODO: need to find what these actually are
-    l_rect = 9  # [m] length of the rectangular part of the air cushion
-    l_tri = 10  # [m] length of the triangular part of the air cushion
-    b_c = 4  # [m] beam of the air cushion
+    l_rect = 12  # [m] length of the rectangular part of the air cushion
+    l_tri = 6  # [m] length of the triangular part of the air cushion
+    b_c = 3.4  # [m] beam of the air cushion
 
-    h = 0.4  # [m] mean height between waterline and hull inside air cushion
-    z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+    h = 0.5  # [m] mean height between waterline and hull inside air cushion
+    z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
     p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
