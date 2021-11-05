@@ -58,7 +58,7 @@ if decouple:
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
 
-nat_frequencies, eigen_modes = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
+nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
 
 print(nat_frequencies)
 print(eigen_modes)

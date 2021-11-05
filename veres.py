@@ -220,7 +220,7 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
 
             counter += 1  # increment counter
 
-    return nat_frequencies, eigen_modes
+    return nat_frequencies, eigen_modes, encounter_frequencies
 
 
 
@@ -251,7 +251,7 @@ if __name__ == "__main__":
 
     Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
 
-    # Create damping and stiffness matrix from air cushion #TODO: input should be difference between VERES coordinate system and cushion centroid
+    # Create damping and stiffness matrix from air cushion
     B_c = damping_matrix_air_cushion(S_0c, x_c - XMTN, h, p_0)  # Damping
     C_c = stiffness_matrix_air_cushion(S_0c, h, x_c - XMTN, z_c - ZMTN, Q_0, dQdp_0, p_0)  # Stiffness
 
@@ -265,11 +265,50 @@ if __name__ == "__main__":
 
     # Creates mass matrix
     M = create_mass_matrix(total_mass, r44, r55, r66)
+    C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
 
-    nat_frequencies, eigen_modes = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, add_row_and_column(C_h[0, 0, 0, :, :]) + C_c, g=9.81, tolerance=1e-3)
+    decouple = True
+    if decouple:
+        M = decouple_matrix(M, [2, 4, 6])
+        C = decouple_matrix(C, [2, 4, 6])
+
+    nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
 
     print(nat_frequencies)
     print(eigen_modes)
+
+    plot_added_mass = True
+
+    if plot_added_mass:
+        # Plotting coefficients
+        plt.plot(FREQ, C_h[0, 0, :, 2, 2], 'x-')
+        plt.xlabel("omega rad/s")
+        plt.ylabel("C_33")
+        plt.title("C_33")
+        plt.grid()
+        plt.show()
+
+        plt.plot(FREQ, B_h[0, 0, :, 2, 2], 'x-')
+        plt.xlabel("wave frequency [rad/s]")
+        plt.ylabel("B_33")
+        plt.title("B_33, 22kn")
+        plt.grid()
+        plt.show()
+
+        plt.plot(FREQ, A_h[0, 0, :, 2, 2], 'x-')
+        plt.xlabel("wave frequency [rad/s]")
+        plt.ylabel("A_33[kg]")
+        plt.title("A_33, 22kn")
+        plt.grid()
+        plt.show()
+
+        plt.plot(encounter_frequencies, A_h[0, 0, :, 2, 2], 'x-')
+        plt.xlabel("encounter frequency [rad/s]")
+        plt.ylabel("A_33[kg]")
+        plt.title("A_33, 22kn")
+        plt.grid()
+        plt.show()
+
     '''
     REFORCE, IMFORCE, VEL, HEAD, FREQ = read_re8_file('Input files/test_input.re8')
 
