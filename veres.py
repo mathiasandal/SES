@@ -197,15 +197,17 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
     n = len(wave_frequencies)
     m = len(restoring)
 
-    nat_frequencies = np.zeros([m], dtype=complex)
+    nat_frequencies = np.ones([m], dtype=complex)
     eigen_modes = np.zeros([m, m], dtype=complex)
 
     # calculates encounter frequency corresponding to each wave frequency and the vessel velocity and wave heading
     encounter_frequencies = wave_frequencies + velocity / g * np.cos(np.deg2rad(heading)) * np.power(wave_frequencies, 2)
 
     for i in range(m):
-        counter = 0
-        index_frequency = int(np.ceil(n/2))
+        counter = 0  # initialize
+        omega_real = 0  # initialize
+        index_frequency_upper = int(np.ceil(n/2))
+        index_frequency_lower = index_frequency_upper - 1
         err = -1.
 
         # Get correct size of
@@ -220,9 +222,20 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
             M = mass
 
             if m == 3:
-                A = decouple_matrix(add_row_and_column(added_mass[0, 0, index_frequency, :, :]), [2, 4, 6])
+                if err == -1.:
+                    A = decouple_matrix(add_row_and_column(added_mass[0, 0, index_frequency_upper, :, :]), [2, 4, 6])
+                else:
+                    A_l = decouple_matrix(add_row_and_column(added_mass[0, 0, index_frequency_lower, :, :]), [2, 4, 6])
+                    A_u = decouple_matrix(add_row_and_column(added_mass[0, 0, index_frequency_upper, :, :]), [2, 4, 6])
+                    A = interpolate_matrices(omega_real, encounter_frequencies[index_frequency_lower], encounter_frequencies[index_frequency_upper], A_l, A_u)
+
             else:
-                A = add_row_and_column(added_mass[0, 0, index_frequency, :, :])
+                if err == -1.:
+                    A = add_row_and_column(added_mass[0, 0, index_frequency_upper, :, :])
+                else:
+                    A_l = add_row_and_column(added_mass[0, 0, index_frequency_lower, :, :])
+                    A_u = add_row_and_column(added_mass[0, 0, index_frequency_upper, :, :])
+                    A = interpolate_matrices(omega_real, encounter_frequencies[index_frequency_lower], encounter_frequencies[index_frequency_upper], A_l, A_u)
 
             C = restoring
 
@@ -233,20 +246,67 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
                 raise ValueError
             '''
 
-            # Computes relative error
-            err = abs((encounter_frequencies[index_frequency] - np.sqrt((nat_freq_temp[i].real)**2 + (nat_freq_temp[i].imag)**2))/encounter_frequencies[index_frequency])
+            omega_real = np.sqrt(nat_freq_temp[i].real**2 + nat_freq_temp[i].imag**2)
 
             # Finds next guess
-            dummy_frequency, index_frequency = find_closest_value(encounter_frequencies, np.sqrt((nat_freq_temp[i].real)**2 + (nat_freq_temp[i].imag)**2))
+            dummy_omega, index_frequency = find_closest_value(encounter_frequencies, omega_real)
+
+            if dummy_omega < omega_real:
+                index_frequency_lower = index_frequency
+                index_frequency_upper = index_frequency + 1
+            elif dummy_omega > omega_real:
+                index_frequency_lower = index_frequency - 1
+                index_frequency_upper = index_frequency
+
+            # Computes relative error
+            err = abs((np.sqrt(nat_frequencies[i].real**2 + nat_frequencies[i].imag**2) - omega_real) /
+                      np.sqrt(nat_frequencies[i].real**2 + nat_frequencies[i].imag**2))
+
+            # err = abs((encounter_frequencies[index_frequency] - omega_real)/encounter_frequencies[index_frequency])
 
             # Assigns new natural frequency to array
             nat_frequencies[i] = nat_freq_temp[i]
             eigen_modes[i, :] = eigen_modes_temp[i, :]
 
+            if omega_real == float('inf'):
+                break  # Breaks if the natural frequency has gone to infinity
+
             counter += 1  # increment counter
 
     return nat_frequencies, eigen_modes, encounter_frequencies
 
+
+def interpolate_matrices(omega, omega_lower, omega_upper, mat_lower, mat_upper):
+    """
+    Interpolates two (nxn) numpy arrays at two different frequencies.
+
+    :param omega: double
+        Frequency of the evaluated frequency
+    :param omega_lower: double
+        Frequency at the lower end for the interpolation
+    :param omega_upper: double
+        Frequency at the upper end for the interpolation
+    :param mat_lower: (nxn) matrix
+        Matrix evaluated at the lower end frequency
+    :param mat_upper: (nxn) matrix
+        Matrix evaluated at the upper end frequency
+    :return:
+        mat: (nxn) matrix
+            interpolated matrix evaluated at omega.
+    """
+
+    # input handling
+    if len(mat_upper) != len(mat_lower):
+        raise ValueError
+    elif omega_lower > omega_upper:
+        raise ValueError
+    elif omega < omega_lower or omega > omega_upper:
+        raise ValueError
+
+    # interpolate
+    mat = mat_lower + (omega - omega_lower)/(omega_upper - omega_lower)*(mat_upper - mat_lower)
+
+    return mat
 
 if __name__ == "__main__":
     from Wave_response_utilities import decouple_matrix, add_row_and_column
