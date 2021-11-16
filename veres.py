@@ -171,6 +171,29 @@ def read_veres_input(path):
 
 def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81, tolerance=1e-6):
 
+    """
+    Iterates to the correct natural undamped natural frequencies of a system with n degrees of freedom for a SES-X vessel.
+
+    :param wave_frequencies:
+    :param velocity:
+    :param heading:
+    :param added_mass: (NVEL x NHEAD x NFREQ x 6 x 6) Matrix
+        Added mass of from the hull calculated using VERES.
+    :param mass: (7x7) or (3x3) matrix
+        if (7x7)
+            contains mass properties of all 7dof, i.e. surge, sway, heave, roll, pitch, yaw and uniform cushion pressure
+        if (3x3)
+            contains mass properties of three degrees of freedom. Heave, pitch and uniform cushion pressure.
+    :param restoring: (3x3) matrix
+        if (3x3)
+            contains restoring properties of three degrees of freedom. Heave, pitch and uniform cushion pressure.
+    :param g: double
+        accelerations of gravity
+    :param tolerance:
+
+    :return:
+    """
+
     n = len(wave_frequencies)
     m = len(restoring)
 
@@ -187,7 +210,7 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
 
         # Get correct size of
 
-        while (counter <= 100 and err <= tolerance) or err == -1:
+        while (counter <= 100 and err >= tolerance) or err == -1:
             # Create matrices for the current encounter frequency
             '''
             M = decouple_matrix(mass, [2, 4, 6])
@@ -205,14 +228,16 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
 
             nat_freq_temp, eigen_modes_temp = la.eig(C, M + A)
 
+            '''
             if nat_freq_temp[i].real <= 0:
                 raise ValueError
+            '''
 
             # Computes relative error
-            err = abs((encounter_frequencies[index_frequency] - np.sqrt(nat_freq_temp[i].real))/encounter_frequencies[index_frequency])
+            err = abs((encounter_frequencies[index_frequency] - np.sqrt((nat_freq_temp[i].real)**2 + (nat_freq_temp[i].imag)**2))/encounter_frequencies[index_frequency])
 
             # Finds next guess
-            dummy_frequency, index_frequency = find_closest_value(encounter_frequencies, np.sqrt(nat_freq_temp[i].real))
+            dummy_frequency, index_frequency = find_closest_value(encounter_frequencies, np.sqrt((nat_freq_temp[i].real)**2 + (nat_freq_temp[i].imag)**2))
 
             # Assigns new natural frequency to array
             nat_frequencies[i] = nat_freq_temp[i]
@@ -271,7 +296,7 @@ if __name__ == "__main__":
         M = decouple_matrix(M, [2, 4, 6])
         C = decouple_matrix(C, [2, 4, 6])
 
-    nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
+    nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
 
     print('Natural frequencies squared (omega^2):')
     print(nat_frequencies)
