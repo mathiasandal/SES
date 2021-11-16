@@ -169,7 +169,7 @@ def read_veres_input(path):
     return A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN
 
 
-def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81, tolerance=1e-6):
+def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass, mass, restoring, g=9.81, tolerance=1e-5):
 
     """
     Iterates to the correct natural undamped natural frequencies of a system with n degrees of freedom for a SES-X vessel.
@@ -356,14 +356,16 @@ if __name__ == "__main__":
         M = decouple_matrix(M, [2, 4, 6])
         C = decouple_matrix(C, [2, 4, 6])
 
-    nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
+    nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
 
-    print('Natural frequencies squared (omega^2):')
+    nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
+
+    print('Natural frequencies (omega^2):')
     print(nat_frequencies)
     print('Eigen modes:')
     print(eigen_modes)
 
-    plot_added_mass = True
+    plot_added_mass = False
 
     if plot_added_mass:
         # Plotting coefficients
@@ -392,13 +394,47 @@ if __name__ == "__main__":
         plt.xlabel("encounter frequency [rad/s]")
         plt.ylabel("A_33[kg]")
         plt.title("A_33, 22kn")
+        plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
         plt.grid()
         plt.show()
 
-    '''
-    REFORCE, IMFORCE, VEL, HEAD, FREQ = read_re8_file('Input files/test_input.re8')
+        plt.plot(encounter_frequencies, A_h[0, 0, :, 4, 4], 'x-')
+        plt.xlabel("encounter frequency [rad/s]")
+        plt.ylabel("A_55[kg]")
+        plt.title("A_55, 22kn")
+        plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 4, 4]),
+                   np.amax(A_h[0, 0, :, 4, 4]))
+        plt.grid()
+        plt.show()
 
-    VMAS, ADDMAS, DAMP, REST, VEL7, HEAD7, FREQ7 = read_re7_file("Input files/test_input.re7")
+    print('Inertia terms:')
+    print('M\t=\t', M[0, 0], '[kg]')
+    print('I_55\t=\t', M[1, 1], '[kg m^2]')
 
-    print(REFORCE[0, 0, 0, 0])
-    '''
+    print('Added mass terms:')
+    A_33_simplified_1 = np.interp(nat_frequencies[0], encounter_frequencies, A_h[0, 0, :, 2, 2])
+    A_33_simplified_2 = np.interp(nat_frequencies[1], encounter_frequencies, A_h[0, 0, :, 2, 2])
+    A_55_simplified_1 = np.interp(nat_frequencies[0], encounter_frequencies, A_h[0, 0, :, 4, 4])
+    A_55_simplified_2 = np.interp(nat_frequencies[1], encounter_frequencies, A_h[0, 0, :, 4, 4])
+
+    print('A_33 nr1\t=\t', A_33_simplified_1, '[kg]')
+    print('A_33 nr2\t=\t', A_33_simplified_2, '[kg]')
+    print('A_55 nr1\t=\t', A_55_simplified_1, '[kg m^2]')
+    print('A_55 nr2\t=\t', A_55_simplified_2, '[kg m^2]')
+
+    print('Stiffness terms:')
+
+    print('C_33\t=\t', C[0, 0], '[N/m]')
+    print('C_55\t=\t', C[1, 1], '[N m^2]')
+
+    print('Uncoupled natural frequencies')
+    omega_33_1 = np.sqrt(C[0, 0] / (M[0, 0] + A_33_simplified_1))
+    omega_33_2 = np.sqrt(C[0, 0] / (M[0, 0] + A_33_simplified_2))
+    omega_55_1 = np.sqrt(C[1, 1] / (M[1, 1] + A_55_simplified_1))
+    omega_55_2 = np.sqrt(C[1, 1] / (M[1, 1] + A_55_simplified_2))
+    print('Omega_33 nr1\t=\t', omega_33_1, '[rad/s]')
+    print('Omega_33 nr2\t=\t', omega_33_2, '[rad/s]')
+    print('Omega_55 nr1\t=\t', omega_55_1, '[rad/s]')
+    print('Omega_55 nr2\t=\t', omega_55_2, '[rad/s]')
+
+    print(omega_33_1 + omega_33_1**2 * VEL[0]/9.81)
