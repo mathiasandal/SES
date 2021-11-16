@@ -310,6 +310,22 @@ def interpolate_matrices(omega, omega_lower, omega_upper, mat_lower, mat_upper):
 
     return mat
 
+
+def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_real, F_ex_imag, g=9.81):
+
+    n = len(wave_frequencies)
+
+    encounter_frequencies = wave_frequencies + velocity / g * np.cos(np.deg2rad(heading)) * np.power(wave_frequencies, 2)
+
+    rao = np.zeros([7, n])
+
+    for i in range(n):
+        A_temp = add_row_and_column(A[0, 0, i, :, :])
+        B_temp = add_row_and_column(B_h[0, 0, i, :, :]) + B_c
+        np.linalg.solve(-encounter_frequencies[i] ** 2 * (M + A_temp) + 1j * encounter_frequencies[i] * B_temp + C, F_ex_real[:, i] + F_ex_imag[:, i]*1j)
+
+    return encounter_frequencies, rao
+
 if __name__ == "__main__":
     from Wave_response_utilities import decouple_matrix, add_row_and_column
     from mass_matrix import create_mass_matrix
