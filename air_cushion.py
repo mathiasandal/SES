@@ -254,7 +254,7 @@ if __name__ == "__main__":
     print('Total air cushion area is', S_0c, '[m^2].')
     print('The centroid of the air cushion is located', x_c, '[m] in front of AP.')
 
-    # Read fan charcateristics from at a specified constant RPM
+    # Read fan characteristics from at a specified constant RPM
     Q, P, rpm_dummy = read_fan_characteristics('Input files/fan characteristics/fan characteristics.csv')
 
     # use interpolation function

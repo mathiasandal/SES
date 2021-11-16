@@ -223,13 +223,12 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
     return nat_frequencies, eigen_modes, encounter_frequencies
 
 
-
 if __name__ == "__main__":
     from Wave_response_utilities import decouple_matrix, add_row_and_column
     from mass_matrix import create_mass_matrix
     from air_cushion import *
 
-    path_veres = 'Input files//Veres input files'
+    path_veres = 'Input files//Veres input files//22kn//1-15s periods'
 
     # Read input from .re7 an .re8 files
     A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_input(path_veres)
@@ -274,7 +273,9 @@ if __name__ == "__main__":
 
     nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
 
+    print('Natural frequencies squared (omega^2):')
     print(nat_frequencies)
+    print('Eigen modes:')
     print(eigen_modes)
 
     plot_added_mass = True
