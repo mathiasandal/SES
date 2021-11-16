@@ -268,8 +268,10 @@ def iterate_natural_frequencies(wave_frequencies, velocity, heading, added_mass,
             nat_frequencies[i] = nat_freq_temp[i]
             eigen_modes[i, :] = eigen_modes_temp[i, :]
 
-            if omega_real == float('inf'):
+            if omega_real == float('inf'):  # infinite frequency
                 break  # Breaks if the natural frequency has gone to infinity
+            elif index_frequency_lower < 0:
+                break  # Breaks if natural frequency goes to zero
 
             counter += 1  # increment counter
 

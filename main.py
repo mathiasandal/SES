@@ -50,7 +50,7 @@ M = create_mass_matrix(total_mass, r44, r55, r66)
 C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
 
 # Decouple matrices to (3x3) containing heave, pitch and cushion pressure
-decouple = True
+decouple = False
 if decouple:
     M = decouple_matrix(M, [2, 4, 6])
     C = decouple_matrix(C, [2, 4, 6])
@@ -58,7 +58,10 @@ if decouple:
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
 
-nat_frequencies, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, g=9.81, tolerance=1e-3)
+nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
+
+nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 
 print(nat_frequencies)
+eigen_modes = np.array(eigen_modes)
 print(eigen_modes)

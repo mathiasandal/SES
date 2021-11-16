@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import scipy.linalg as la
 import numpy as np
 
+'''
 # Read *re7 file
 VMAS, ADDMAS, DAMP, REST, VEL1, HEAD1, FREQ1 = read_re7_file("Input files/test_input.re7")
 
@@ -65,6 +66,8 @@ print('B:')
 print(B_heave_pitch)
 print('Natural frequency in heave = ', np.sqrt(K[2, 2]/M[2, 2]))
 print('Frequency:', FREQ1[freq_index], 'rad/s')
+'''
+
 
 '''
 print(np.sqrt(D[2]))
@@ -94,3 +97,26 @@ plt.ylabel("Force in heave [N/m]")
 plt.grid()
 plt.show()
 '''
+
+from veres import interpolate_matrices
+
+M_l = np.ones([6, 6])
+M_u = np.ones([6, 6])*2
+
+omega_l = 0
+omega_u = 1
+omega = 0.7
+
+# M = M_l + (omega - omega_l)/(omega_u - omega_l)*(M_u - M_l)
+
+M = interpolate_matrices(omega, omega_l, omega_u, M_l, M_u)
+
+print(M)
+
+a = 5 + 7j
+
+print(np.sqrt(abs(a)))
+
+b = np.array([-1, 2, -3])
+print(abs(b))
+
