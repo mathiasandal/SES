@@ -146,16 +146,21 @@ def read_re8_file(filename):
 def read_veres_input(path):
     # TODO: Add documentation
 
+    # Reads *.re7 file
     VMAS, ADDMAS, DAMP, REST, VEL_re7, HEAD_re7, FREQ_re7, XMTN_re7, ZMTN_re7 = read_re7_file(path + '//input.re7')
 
+    # Reads *.re8 file
     REFORCE, IMFORCE, VEL_re8, HEAD_re8, FREQ_re8, XMTN_re8, ZMTN_re8 = read_re8_file(path + '//input.re8')
 
+    # Store the necessary data
     A_h = ADDMAS
     B_h = DAMP
     C_h = REST
     F_ex_real = REFORCE
     F_ex_im = IMFORCE
 
+    # Input handling. Checks that the hydrodynamic coefficients from *.re7 have the same velocity, heading and
+    # frequencies as the excitation forces in *.re8 file.
     if VEL_re7.all() == VEL_re8.all() and HEAD_re7.all() == HEAD_re8.all() and FREQ_re7.all() == FREQ_re8.all() and \
             XMTN_re7.all() == XMTN_re8.all() and ZMTN_re7.all() == ZMTN_re8.all():
         VEL = VEL_re7
@@ -312,6 +317,8 @@ def interpolate_matrices(omega, omega_lower, omega_upper, mat_lower, mat_upper):
 
 
 def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_real, F_ex_imag, g=9.81):
+
+    # TODO: Add documentation
 
     n = len(wave_frequencies)
 
