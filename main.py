@@ -69,6 +69,8 @@ nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag)
 wave_periods = 2*np.pi*np.power(FREQ, -1)
 encounter_periods = 2*np.pi*np.power(encounter_frequencies, -1)
+# k_encounter = 9.81*np.power(encounter_frequencies, 2)
+k = 9.81*np.power(FREQ, 2)
 
 plt.plot(encounter_frequencies, A_h[0, 0, :, 2, 2], 'x-')
 plt.xlabel("encounter frequency [rad/s]")
@@ -87,27 +89,65 @@ plt.grid()
 plt.show()
 
 # Plot RAOs
-rao_dof = 6  # choose what degree of freedom to plot
+rao_dof = 4  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
 xlabel_choice = 3
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
 
-if xlabel_choice == 0:
-    plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
-    plt.xlabel("encounter frequency [rad/s]")
-elif xlabel_choice == 1:
-    plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
-    plt.xlabel("wave frequency [rad/s]")
-elif xlabel_choice == 2:
-    plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
-    plt.xlabel("wave periods [s]")
-elif xlabel_choice == 3:
-    plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
-    plt.xlabel("encounter periods [s]")
+if rao_dof == 0 or rao_dof == 1 or rao_dof == 2:  # Translational degree of freedom
+    if xlabel_choice == 0:
+        plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("encounter frequency [rad/s]")
+    elif xlabel_choice == 1:
+        plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("wave frequency [rad/s]")
+    elif xlabel_choice == 2:
+        plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("wave periods [s]")
+    elif xlabel_choice == 3:
+        plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("encounter periods [s]")
+    else:
+        raise ValueError
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')
+
+elif rao_dof == 3 or rao_dof == 4 or rao_dof == 5:  # Rotational degree of freedom
+    if xlabel_choice == 0:
+        plt.plot(encounter_frequencies, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+        plt.xlabel("encounter frequency [rad/s]")
+    elif xlabel_choice == 1:
+        plt.plot(FREQ, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+        plt.xlabel("wave frequency [rad/s]")
+    elif xlabel_choice == 2:
+        plt.plot(wave_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+        plt.xlabel("wave periods [s]")
+    elif xlabel_choice == 3:
+        plt.plot(encounter_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+        plt.xlabel("encounter periods [s]")
+    else:
+        raise ValueError
+
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/k\zeta_a$')
+
+elif rao_dof == 6:  # uniform pressure dof
+    if xlabel_choice == 0:
+        plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("encounter frequency [rad/s]")
+    elif xlabel_choice == 1:
+        plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("wave frequency [rad/s]")
+    elif xlabel_choice == 2:
+        plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("wave periods [s]")
+    elif xlabel_choice == 3:
+        plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
+        plt.xlabel("encounter periods [s]")
+    else:
+        raise ValueError
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}$')
 else:
     raise ValueError
 
-plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')
 plt.title("RAO in " + DOF_names[rao_dof] + ", " + str(VEL[0]) + " [m/s]")
 plt.grid()
 plt.show()
