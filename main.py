@@ -1,4 +1,4 @@
-from veres import read_veres_input, iterate_natural_frequencies
+from veres import read_veres_input, iterate_natural_frequencies, compute_RAOs
 from air_cushion import read_fan_characteristics, air_cushion_area, interpolate_fan_characteristics, damping_matrix_air_cushion, stiffness_matrix_air_cushion
 from mass_matrix import create_mass_matrix
 from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix, add_row_and_column
@@ -10,7 +10,7 @@ import numpy as np
 
 # Read input from .re7 an .re8 files
 path_veres = 'Input files//Veres input files//22kn//1-15s periods'
-A_h, B_h, C_h, F_ex_real, F_ex_im, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_input(path_veres)
+A_h, B_h, C_h, F_ex_real, F_ex_imag, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_input(path_veres)
 
 # Read fan characteristics
 Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')
@@ -62,6 +62,58 @@ nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_fr
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 
+# Plot hydrodynamic coefficients
+
+
+# Compute RAOs
+encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag)
+wave_periods = 2*np.pi*np.power(FREQ, -1)
+encounter_periods = 2*np.pi*np.power(encounter_frequencies, -1)
+
+plt.plot(encounter_frequencies, A_h[0, 0, :, 2, 2], 'x-')
+plt.xlabel("encounter frequency [rad/s]")
+plt.ylabel("$A_{33}^{hyd}$ [kg]")
+plt.title("$A_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
+# plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
+plt.grid()
+plt.show()
+
+plt.plot(encounter_frequencies, B_h[0, 0, :, 2, 2], 'x-')
+plt.xlabel("encounter frequency [rad/s]")
+plt.ylabel("$B_{33}^{hyd}$ [kg/s] ")
+plt.title("$B_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
+# plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
+plt.grid()
+plt.show()
+
+# Plot RAOs
+rao_dof = 6  # choose what degree of freedom to plot
+DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
+xlabel_choice = 3
+xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
+
+if xlabel_choice == 0:
+    plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
+    plt.xlabel("encounter frequency [rad/s]")
+elif xlabel_choice == 1:
+    plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
+    plt.xlabel("wave frequency [rad/s]")
+elif xlabel_choice == 2:
+    plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
+    plt.xlabel("wave periods [s]")
+elif xlabel_choice == 3:
+    plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
+    plt.xlabel("encounter periods [s]")
+else:
+    raise ValueError
+
+plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')
+plt.title("RAO in " + DOF_names[rao_dof] + ", " + str(VEL[0]) + " [m/s]")
+plt.grid()
+plt.show()
+
+
+nat_periods = 2*np.pi*np.power(nat_frequencies, -1)
 print(nat_frequencies)
 eigen_modes = np.array(eigen_modes)
 print(eigen_modes)
