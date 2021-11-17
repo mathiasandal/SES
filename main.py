@@ -25,14 +25,15 @@ z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX
 
 p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
-S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
+S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)  # Computes air cushion area properties
 
-Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
+Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)  # Interpolates fan characteristics
 
 
 # Create damping and stiffness matrix from air cushion #TODO: input should be difference between VERES coordinate system and cushion centroid
 B_c = damping_matrix_air_cushion(S_0c, x_c - XMTN, h, p_0)  # Damping
 C_c = stiffness_matrix_air_cushion(S_0c, h, x_c - XMTN, z_c - ZMTN, Q_0, dQdp_0, p_0)  # Stiffness
+
 
 # Create mass matrix
 # main dimensions of BBGreen
@@ -46,8 +47,10 @@ r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
 # Creates mass matrix
 M = create_mass_matrix(total_mass, r44, r55, r66)
 
+
 # Collect stiffness matrices
 C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
+
 
 # Decouple matrices to (3x3) containing heave, pitch and cushion pressure
 decouple = False
@@ -55,14 +58,12 @@ if decouple:
     M = decouple_matrix(M, [2, 4, 6])
     C = decouple_matrix(C, [2, 4, 6])
 
+
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
-
 nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
-
-# Plot hydrodynamic coefficients
 
 
 # Compute RAOs
@@ -72,6 +73,9 @@ encounter_periods = 2*np.pi*np.power(encounter_frequencies, -1)
 # k_encounter = 9.81*np.power(encounter_frequencies, 2)
 k = 9.81*np.power(FREQ, 2)
 
+
+# Plot hydrodynamic coefficients
+# Plots added mass in heave
 plt.plot(encounter_frequencies, A_h[0, 0, :, 2, 2], 'x-')
 plt.xlabel("encounter frequency [rad/s]")
 plt.ylabel("$A_{33}^{hyd}$ [kg]")
@@ -80,6 +84,8 @@ plt.title("$A_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
 plt.grid()
 plt.show()
 
+
+# Plots damping in heave
 plt.plot(encounter_frequencies, B_h[0, 0, :, 2, 2], 'x-')
 plt.xlabel("encounter frequency [rad/s]")
 plt.ylabel("$B_{33}^{hyd}$ [kg/s] ")
@@ -88,70 +94,72 @@ plt.title("$B_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
 plt.grid()
 plt.show()
 
+
 # Plot RAOs
 rao_dof = 4  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
-xlabel_choice = 3
+xlabel_choice = 3  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
 
+
 if rao_dof == 0 or rao_dof == 1 or rao_dof == 2:  # Translational degree of freedom
-    if xlabel_choice == 0:
+    if xlabel_choice == 0:  # Plots translational DOF against encounter frequency
         plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:
+    elif xlabel_choice == 1:  # Plots translational DOF against wave frequency
         plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:
+    elif xlabel_choice == 2:  # Plots translational DOF against wave periods
         plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:
+    elif xlabel_choice == 3:  # Plots translational DOF against encounter periods
         plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("encounter periods [s]")
     else:
         raise ValueError
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')
+
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')  # Sets correct y-label in plot
 
 elif rao_dof == 3 or rao_dof == 4 or rao_dof == 5:  # Rotational degree of freedom
-    if xlabel_choice == 0:
+    if xlabel_choice == 0:  # Plots rotational DOF against encounter frequency
         plt.plot(encounter_frequencies, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
         plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:
+    elif xlabel_choice == 1:  # Plots rotational DOF against encounter frequency
         plt.plot(FREQ, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
         plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:
+    elif xlabel_choice == 2:  # Plots rotational DOF against wave periods
         plt.plot(wave_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
         plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:
+    elif xlabel_choice == 3:  # Plots rotational DOF against encounter periods
         plt.plot(encounter_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
         plt.xlabel("encounter periods [s]")
     else:
         raise ValueError
 
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/k\zeta_a$')
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/k\zeta_a$')  # Sets correct y-label in plot
 
 elif rao_dof == 6:  # uniform pressure dof
-    if xlabel_choice == 0:
+    if xlabel_choice == 0:  # Plots uniform pressure DOF against encounter frequency
         plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:
+    elif xlabel_choice == 1:  # Plots uniform pressure DOF against wave frequency
         plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:
+    elif xlabel_choice == 2:  # Plots uniform pressure DOF against wave periods
         plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:
+    elif xlabel_choice == 3:  # # Plots uniform pressure DOF against encounter periods
         plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
         plt.xlabel("encounter periods [s]")
     else:
         raise ValueError
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}$')
+    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}$')  # Sets correct y-label in plot
 else:
     raise ValueError
 
 plt.title("RAO in " + DOF_names[rao_dof] + ", " + str(VEL[0]) + " [m/s]")
 plt.grid()
 plt.show()
-
 
 nat_periods = 2*np.pi*np.power(nat_frequencies, -1)
 print(nat_frequencies)
