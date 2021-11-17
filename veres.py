@@ -317,14 +317,21 @@ def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_re
 
     encounter_frequencies = wave_frequencies + velocity / g * np.cos(np.deg2rad(heading)) * np.power(wave_frequencies, 2)
 
-    rao = np.zeros([7, n])
+    rao = np.zeros([7, n], dtype=complex)
 
     for i in range(n):
         A_temp = add_row_and_column(A[0, 0, i, :, :])
         B_temp = add_row_and_column(B_h[0, 0, i, :, :]) + B_c
-        np.linalg.solve(-encounter_frequencies[i] ** 2 * (M + A_temp) + 1j * encounter_frequencies[i] * B_temp + C, F_ex_real[:, i] + F_ex_imag[:, i]*1j)
+        # adds a empty column to model no excitation in the air cushion
+        # F_ex_real_temp = F_ex_real[:, i, 0, 0]
+        # F_ex_imag_temp = F_ex_imag[:, i, 0, 0]
+        F_ex_real_temp = np.r_[F_ex_real[:, i, 0, 0], np.array([0])]
+        F_ex_imag_temp = np.r_[F_ex_imag[:, i, 0, 0], np.array([0])]
+        # Solves linear system of equations
+        rao[:, i] = np.linalg.solve(-encounter_frequencies[i] ** 2 * (M + A_temp) + 1j * encounter_frequencies[i] * B_temp + C, F_ex_real_temp + F_ex_imag_temp*1j)
 
     return encounter_frequencies, rao
+
 
 if __name__ == "__main__":
     from Wave_response_utilities import decouple_matrix, add_row_and_column
