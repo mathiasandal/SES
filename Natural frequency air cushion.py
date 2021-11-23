@@ -6,7 +6,7 @@ from air_cushion import air_cushion_area, interpolate_fan_characteristics, read_
 """Input parameters"""
 l_rect = 9  # [m] length of the rectangular part of the air cushion
 l_tri = 10  # [m] length of the triangular part of the air cushion
-b_c = 4  # [m] beam of the air cushion
+b_c = 3.4  # [m] beam of the air cushion
 h_b = 0.3  # [m] Distance from waterline to the roof of the air cushion #TODO Need to find out what this is.
 M = 25.6e3  # [kg] Total mass of the vessel
 p_0 = 3500  # [Pa] Excess air pressure in air cushion
