@@ -76,9 +76,37 @@ k = 9.81*np.power(FREQ, 2)
 
 # Plot hydrodynamic coefficients
 # Plots added mass in heave
+'''
 plt.plot(encounter_frequencies, A_h[0, 0, :, 2, 2], 'x-')
 plt.xlabel("encounter frequency [rad/s]")
 plt.ylabel("$A_{33}^{hyd}$ [kg]")
+plt.title("$A_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
+# plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
+plt.grid()
+plt.show()
+'''
+'''
+# Plots damping in heave
+plt.plot(encounter_frequencies, B_h[0, 0, :, 2, 2], 'x-')
+plt.xlabel("encounter frequency [rad/s]")
+plt.ylabel("$B_{33}^{hyd}$ [kg/s] ")
+plt.title("$B_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
+# plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
+plt.grid()
+plt.show()
+'''
+
+plt.plot(encounter_periods, A_h[0, 0, :, 4, 4], 'x-')
+plt.xlabel("encounter period [s]")
+plt.ylabel("$A_{55}^{hyd}$ [kg m^2]")
+plt.title("$A_{55}^{hyd}$, " + str(VEL[0]) + " [m/s]")
+# plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
+plt.grid()
+plt.show()
+
+plt.plot(np.divide(encounter_frequencies, 2*np.pi), np.divide(A_h[0, 0, :, 2, 2], 2.4*1025), 'x-')
+plt.xlabel("encounter frequency [Hz]")
+plt.ylabel("$\\frac{A_{33}^{hyd}}{M^{hyd}}$ [-]")
 plt.title("$A_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
 # plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
 plt.grid()
@@ -96,72 +124,75 @@ plt.show()
 
 
 # Plot RAOs
+plot_rao = False
 rao_dof = 4  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
 xlabel_choice = 3  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
 
+if plot_rao:
+    if rao_dof == 0 or rao_dof == 1 or rao_dof == 2:  # Translational degree of freedom
+        if xlabel_choice == 0:  # Plots translational DOF against encounter frequency
+            plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("encounter frequency [rad/s]")
+        elif xlabel_choice == 1:  # Plots translational DOF against wave frequency
+            plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("wave frequency [rad/s]")
+        elif xlabel_choice == 2:  # Plots translational DOF against wave periods
+            plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("wave periods [s]")
+        elif xlabel_choice == 3:  # Plots translational DOF against encounter periods
+            plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("encounter periods [s]")
+        else:
+            raise ValueError
 
-if rao_dof == 0 or rao_dof == 1 or rao_dof == 2:  # Translational degree of freedom
-    if xlabel_choice == 0:  # Plots translational DOF against encounter frequency
-        plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:  # Plots translational DOF against wave frequency
-        plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:  # Plots translational DOF against wave periods
-        plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:  # Plots translational DOF against encounter periods
-        plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("encounter periods [s]")
+        plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')  # Sets correct y-label in plot
+
+    elif rao_dof == 3 or rao_dof == 4 or rao_dof == 5:  # Rotational degree of freedom
+        if xlabel_choice == 0:  # Plots rotational DOF against encounter frequency
+            plt.plot(encounter_frequencies, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+            plt.xlabel("encounter frequency [rad/s]")
+        elif xlabel_choice == 1:  # Plots rotational DOF against encounter frequency
+            plt.plot(FREQ, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+            plt.xlabel("wave frequency [rad/s]")
+        elif xlabel_choice == 2:  # Plots rotational DOF against wave periods
+            plt.plot(wave_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+            plt.xlabel("wave periods [s]")
+        elif xlabel_choice == 3:  # Plots rotational DOF against encounter periods
+            plt.plot(encounter_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
+            plt.xlabel("encounter periods [s]")
+        else:
+            raise ValueError
+
+        plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/k\zeta_a$')  # Sets correct y-label in plot
+
+    elif rao_dof == 6:  # uniform pressure dof
+        if xlabel_choice == 0:  # Plots uniform pressure DOF against encounter frequency
+            plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("encounter frequency [rad/s]")
+        elif xlabel_choice == 1:  # Plots uniform pressure DOF against wave frequency
+            plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("wave frequency [rad/s]")
+        elif xlabel_choice == 2:  # Plots uniform pressure DOF against wave periods
+            plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("wave periods [s]")
+        elif xlabel_choice == 3:  # # Plots uniform pressure DOF against encounter periods
+            plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("encounter periods [s]")
+        else:
+            raise ValueError
+        plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}$')  # Sets correct y-label in plot
     else:
         raise ValueError
 
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/ \zeta_a$')  # Sets correct y-label in plot
-
-elif rao_dof == 3 or rao_dof == 4 or rao_dof == 5:  # Rotational degree of freedom
-    if xlabel_choice == 0:  # Plots rotational DOF against encounter frequency
-        plt.plot(encounter_frequencies, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
-        plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:  # Plots rotational DOF against encounter frequency
-        plt.plot(FREQ, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
-        plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:  # Plots rotational DOF against wave periods
-        plt.plot(wave_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
-        plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:  # Plots rotational DOF against encounter periods
-        plt.plot(encounter_periods, np.divide(abs(rao[rao_dof, :]), k), 'kx-')
-        plt.xlabel("encounter periods [s]")
-    else:
-        raise ValueError
-
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}/k\zeta_a$')  # Sets correct y-label in plot
-
-elif rao_dof == 6:  # uniform pressure dof
-    if xlabel_choice == 0:  # Plots uniform pressure DOF against encounter frequency
-        plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("encounter frequency [rad/s]")
-    elif xlabel_choice == 1:  # Plots uniform pressure DOF against wave frequency
-        plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("wave frequency [rad/s]")
-    elif xlabel_choice == 2:  # Plots uniform pressure DOF against wave periods
-        plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("wave periods [s]")
-    elif xlabel_choice == 3:  # # Plots uniform pressure DOF against encounter periods
-        plt.plot(encounter_periods, abs(rao[rao_dof, :]), 'kx-')
-        plt.xlabel("encounter periods [s]")
-    else:
-        raise ValueError
-    plt.ylabel('$\eta_{' + str(rao_dof + 1) + '}$')  # Sets correct y-label in plot
-else:
-    raise ValueError
-
-plt.title("RAO in " + DOF_names[rao_dof] + ", " + str(VEL[0]) + " [m/s]")
-plt.grid()
-plt.show()
+    plt.title("RAO in " + DOF_names[rao_dof] + ", " + str(VEL[0]) + " [m/s]")
+    plt.grid()
+    plt.show()
 
 nat_periods = 2*np.pi*np.power(nat_frequencies, -1)
 print(nat_frequencies)
 eigen_modes = np.array(eigen_modes)
 print(eigen_modes)
+
+print("C_33 = " + str(C_h[0, 0, 50, 2, 2]) + " [N/m]")
