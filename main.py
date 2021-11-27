@@ -61,7 +61,7 @@ if decouple:
 
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
-nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C)
+nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, 9.81, 1e-8)
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 

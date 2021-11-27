@@ -287,10 +287,11 @@ if __name__ == "__main__":
 
     for rpm in rpms:
         Q, P, rpm_plot = read_fan_characteristics("Input files/fan characteristics/fan characteristics.csv", rpm)
-        plt.plot(Q, P, label=rpm_plot)
+        plt.plot(Q, P, label=rpm[:-3] + " " + rpm[-3:].upper())
 
-    plt.title('Fan characteristics')
-    plt.ylabel('P [Pa]')
-    plt.xlabel('Q [m^3/s]')
+    plt.title('Fan characteristic curves')
+    plt.ylabel('$P$ $[Pa]$')
+    plt.xlabel('$Q$ $[m^3/s]$')
     plt.legend(loc='upper right')
+    # plt.savefig('Results\\fan_characteristics.pdf')
     plt.show()
