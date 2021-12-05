@@ -145,19 +145,19 @@ def interpolate_fan_characteristics(p_0, p, Q):
     # Applies a central finite difference to estimate the slope near the working position (p_0, Q_0)
     if p_0_closest == p_0:
         dQdp_0 = (Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
-                    p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
+                p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
     elif p_0_closest < p_0:
         alpha = (p_0 - p[p_0_closest_index - 1]) / (p[p_0_closest_index] - p[p_0_closest_index - 1])
         dQdp_0 = (1 - alpha) * (Q[p_0_closest_index] - Q[p_0_closest_index - 2]) / (
-                    p[p_0_closest_index] - p[p_0_closest_index - 2]) + alpha * (
-                             Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
-                             p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
+                p[p_0_closest_index] - p[p_0_closest_index - 2]) + alpha * (
+                         Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
+                         p[p_0_closest_index + 1] - p[p_0_closest_index - 1])
     elif p_0_closest > p_0:
         alpha = (p_0 - p[p_0_closest_index]) / (p[p_0_closest_index + 1] - p[p_0_closest_index])
         dQdp_0 = (1 - alpha) * (Q[p_0_closest_index + 1] - Q[p_0_closest_index - 1]) / (
-                    p[p_0_closest_index + 1] - p[p_0_closest_index - 1]) + alpha * (
-                             Q[p_0_closest_index + 2] - Q[p_0_closest_index]) / (
-                             p[p_0_closest_index + 2] - p[p_0_closest_index])
+                p[p_0_closest_index + 1] - p[p_0_closest_index - 1]) + alpha * (
+                         Q[p_0_closest_index + 2] - Q[p_0_closest_index]) / (
+                         p[p_0_closest_index + 2] - p[p_0_closest_index])
 
     return Q_0, dQdp_0
 
@@ -235,6 +235,23 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
     Q = Q[Q < Q_cut]
 
     return Q, P, rpm
+
+
+def wave_pumping_air_cushion(b, l_1, l_2, x_prime, k, beta, omega):
+    np.sin(np.deg2rad(beta))
+    np.cos(np.deg2rad(beta))
+
+    I_F_7 = 2 * 1j * np.sin(k * b / 2 * np.sin(np.deg2rad(beta))) / (
+            k ** 2 * np.sin(np.deg2rad(beta)) * np.cos(np.deg2rad(beta))) * \
+            np.exp(-1j * k * x_prime * np.cos(np.deg2rad(beta)))*(1 - np.exp(1j*k*l_1*np.cos(np.deg2rad(beta)))) + \
+            4*l_2*np.exp(-1j*k*(x_prime - l_1)*np.cos(np.deg2rad(beta)))/(k*b**2*np.sin(np.deg2rad(beta))**2 -
+            4*l_2**2*k*np.cos(np.deg2rad(beta))**2)*(b/2*np.sin(np.deg2rad(beta)) *
+            (np.exp(-1j*k*l_2*np.cos(np.deg2rad(beta))) - np.cos(k*b/2*np.sin(np.deg2rad(beta)))) -
+            1j*l_2*np.cos(np.deg2rad(beta))*np.sin(k*b/2*np.sin(np.deg2rad(beta))))
+
+    F_7_hat = 1j*omega*I_F_7
+
+    return F_7_hat
 
 
 if __name__ == "__main__":
