@@ -1,5 +1,6 @@
 from veres import read_veres_input, iterate_natural_frequencies, compute_RAOs
-from air_cushion import read_fan_characteristics, air_cushion_area, interpolate_fan_characteristics, damping_matrix_air_cushion, stiffness_matrix_air_cushion
+from air_cushion import read_fan_characteristics, air_cushion_area, interpolate_fan_characteristics, \
+    damping_matrix_air_cushion, stiffness_matrix_air_cushion, wave_pumping_excitation
 from mass_matrix import create_mass_matrix
 from Wave_response_utilities import solve_eq_motion_steady_state, decouple_matrix, add_row_and_column
 
@@ -16,9 +17,9 @@ A_h, B_h, C_h, F_ex_real, F_ex_imag, VEL, HEAD, FREQ, XMTN, ZMTN = read_veres_in
 Q, P, rpm = read_fan_characteristics('Input files//fan characteristics//fan characteristics.csv', '1800rpm')
 
 # Air cushion input variables
-l_rect = 12  # [m] length of the rectangular part of the air cushion
-l_tri = 6  # [m] length of the triangular part of the air cushion
-b_c = 3.4  # [m] beam of the air cushion
+l_1 = 12  # [m] length of the rectangular part of the air cushion
+l_2 = 6  # [m] length of the triangular part of the air cushion
+b = 3.4  # [m] beam of the air cushion
 
 h_b = 0.64  # [m] Cushion plenum height
 h = 0.64  # [m] mean height between waterline(baseline) and hull inside air cushion at AP
@@ -26,7 +27,7 @@ z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX 
 
 p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
-A_b, x_c = air_cushion_area(l_rect, l_tri, b_c)  # Computes air cushion area properties
+A_b, x_c = air_cushion_area(l_1, l_2, b)  # Computes air cushion area properties
 
 Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)  # Interpolates fan characteristics
 
@@ -76,6 +77,8 @@ nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_fr
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 
+# Excitation in eta_7 due to wave pumping of undisturbed incoming waves
+f_ex_7 = wave_pumping_excitation(b, l_1, l_2, x_prime, HEAD[0], encounter_frequencies)
 
 # Compute RAOs
 encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag)

@@ -86,13 +86,13 @@ def air_cushion_area(l_rect, l_tri, b_c):
     _        ____________________
     |       |                      *
     |       |       Air cushion       *
-    b_c     |             x              >
+    b     |             x              >
     |       |                         *
     _       |____________________ *
 
             |-----x_c----|
 
-    Total area: b_c*l_rect + 0.5 * b_c*l_tri
+    Total area: b*l_1 + 0.5 * b*l_2
 
     :param l_rect: double [m]
         length of rectangular part of the air cushion
@@ -267,6 +267,22 @@ def wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omega, g=9.81):
     f_7_hat = 1j*omega*(I_1 + I_2)
 
     return f_7_hat
+
+
+def wave_pumping_excitation(b, l_1, l_2, x_prime, beta, omegas, g=9.81):
+
+    # TODO: Add documentation
+
+    n = len(omegas)  # length of list of omegas
+
+    # initialize f_ex_7
+    f_ex_7 = np.zeros([n], dtype=complex)
+
+    # calculate one complex force amplitude per omega
+    for i in range(n):
+        f_ex_7[i] = wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omegas[i], g=9.81)
+
+    return f_ex_7
 
 
 if __name__ == "__main__":
