@@ -369,29 +369,48 @@ if __name__ == "__main__":
     l_tri = 6  # [m] length of the triangular part of the air cushion
     b_c = 3.4  # [m] beam of the air cushion
 
-    h = 0.5  # [m] mean height between waterline and hull inside air cushion
-    z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+    h_b = 0.64  # [m] Cushion plenum height
+    h = 0.64  # [m] mean height between waterline(baseline) and hull inside air cushion at AP
+    z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
     p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
-    S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
+    A_b, x_c = air_cushion_area(l_rect, l_tri, b_c)
 
     Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)
 
-    # Create damping and stiffness matrix from air cushion
-    B_c = damping_matrix_air_cushion(S_0c, x_c - XMTN, h, p_0)  # Damping
-    C_c = stiffness_matrix_air_cushion(S_0c, h, x_c - XMTN, z_c - ZMTN, Q_0, dQdp_0, p_0)  # Stiffness
+
 
     # main dimensions of BBGreen
-    B = 6  # [m] beam of BBGreen
-    Lpp = 19.2  # [m] L_pp of BBGreen
+    beam = 6  # [m] beam of BBGreen
+    Lpp = 19.9  # [m] L_pp of BBGreen
+
+    # location of motion coordinate system relative to intersection of AP, CL and BL
+    x_prime = Lpp / 2 + XMTN[0]  # longitudinal distance from AP to the origin of the motion coordinate system
+    z_prime = ZMTN[0]  # vertical distance from BL to the origin of the motion coordinate system
+
+    # mass properties
     total_mass = 25.6e3  # [kg] total mass of the vessel
-    r44 = 0.35*B  # [m] radii of gyration in roll
-    r55 = 0.25*Lpp  # [m] radii of gyration in pitch
-    r66 = 0.27*Lpp  # [m] radii of gyration in yaw
+    r44 = 0.35 * beam  # [m] radii of gyration in roll
+    r55 = 0.25 * Lpp  # [m] radii of gyration in pitch
+    r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
+    r46 = 0  # [m] radii of gyration for inertial coupling of yaw and roll
+    lcg = 7.83  # [m] longitudinal center of gravity relative to AP
+    vcg = 1.98  # [m] vertical center of gravity relative to BL
+    x_G = x_prime - lcg  # [m] longitudinal position of COG relative to the motion coordinate system
+    z_G = z_prime - vcg  # [m] vertical position of COG relative to the motion coordinate system
+
+    # Create damping and stiffness matrix from air cushion
+    B_c = damping_matrix_air_cushion(A_b, x_c, x_prime, h_b, p_0)  # Damping
+    C_c = stiffness_matrix_air_cushion(A_b, h, x_c, z_c, x_prime, z_prime, Q_0, dQdp_0, p_0)  # Stiffness
 
     # Creates mass matrix
-    M = create_mass_matrix(total_mass, r44, r55, r66)
+    M = create_mass_matrix(total_mass, r44, r55, r66, r46, x_G, z_G)
+
+    # Adds an empty row and column for the uniform pressure degree of freedom eta_7
+    M = add_row_and_column(M)
+
+    # Collect stiffness matrices
     C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
 
     decouple = True
