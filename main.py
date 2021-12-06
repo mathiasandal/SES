@@ -20,19 +20,16 @@ l_rect = 12  # [m] length of the rectangular part of the air cushion
 l_tri = 6  # [m] length of the triangular part of the air cushion
 b_c = 3.4  # [m] beam of the air cushion
 
+h_b = 0.64  # [m] Cushion plenum height
 h = 0.64  # [m] mean height between waterline(baseline) and hull inside air cushion at AP
 z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
 p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
-S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)  # Computes air cushion area properties
+A_b, x_c = air_cushion_area(l_rect, l_tri, b_c)  # Computes air cushion area properties
 
 Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)  # Interpolates fan characteristics
 
-
-# Create damping and stiffness matrix from air cushion #TODO: input should be difference between VERES coordinate system and cushion centroid
-B_c = damping_matrix_air_cushion(S_0c, x_c - XMTN, h, p_0)  # Damping
-C_c = stiffness_matrix_air_cushion(S_0c, h, x_c - XMTN, z_c - ZMTN, Q_0, dQdp_0, p_0)  # Stiffness
 
 
 # Create mass matrix
@@ -47,6 +44,13 @@ r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
 # Creates mass matrix
 M = create_mass_matrix(total_mass, r44, r55, r66)
 
+# location of motion coordinate system relative to intersection of AP, CL and BL
+x_prime = Lpp/2 + XMTN  # longitudinal distance from AP to the origin of the motion coordinate system
+z_prime = ZMTN  # vertical distance from BL to the origin of the motion coordinate system
+
+# Create damping and stiffness matrix from air cushion
+B_c = damping_matrix_air_cushion(A_b, x_c, x_prime, h_b, p_0)  # Damping
+C_c = stiffness_matrix_air_cushion(A_b, h, x_c, z_c, x_prime, z_prime, Q_0, dQdp_0, p_0)  # Stiffness
 
 # Collect stiffness matrices
 C = add_row_and_column(C_h[0, 0, 0, :, :]) + C_c
@@ -124,8 +128,8 @@ plt.show()
 
 
 # Plot RAOs
-plot_rao = False
-rao_dof = 4  # choose what degree of freedom to plot
+plot_rao = True
+rao_dof = 2  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
 xlabel_choice = 3  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']

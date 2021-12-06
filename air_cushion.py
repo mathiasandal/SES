@@ -53,7 +53,7 @@ def damping_matrix_air_cushion(A_b, x_c, x_prime, h_b, p_0, p_a=101325, gamma=1.
         Distance from centroid to AP
     :param x_prime: (float)
         Distance from AP to motion coordinate system
-    :param h: (float)
+    :param h_b: (float)
         Mean height between waterline and hull inside air cushion
     :param p_0: (float)
         Pressure in the air cushion at the equilibrium
@@ -101,7 +101,7 @@ def air_cushion_area(l_rect, l_tri, b_c):
     :param b_c: double [m]
         beam of the air cushion
     :return:
-    S_0c: double
+    A_b: double
         Total area of the air cushion
     x_c: double
         Distance from centroid to AP
@@ -275,6 +275,7 @@ if __name__ == "__main__":
     l_2 = 6  # [m] length of the triangular part of the air cushion
     b = 3.4  # [m] beam of the air cushion
 
+    h_b = 0.64  # [m] Cushion plenum height
     h = 0.5  # [m] mean height between waterline and hull inside air cushion
     z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
