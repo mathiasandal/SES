@@ -74,7 +74,7 @@ if decouple:
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
 nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M,
-                                                                                          C, 9.81, 1e-8)
+                                                                                          C, 9.81, 1e-12)
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 
@@ -145,9 +145,9 @@ plt.show()
 
 # Plot RAOs
 plot_rao = True
-rao_dof = 2  # choose what degree of freedom to plot
+rao_dof = 6  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
-xlabel_choice = 3  # chose what to plot the RAO against
+xlabel_choice = 0  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
 
 # Define plot colors
@@ -194,11 +194,11 @@ if plot_rao:
 
     elif rao_dof == 6:  # uniform pressure dof
         if xlabel_choice == 0:  # Plots uniform pressure DOF against encounter frequency
-            plt.plot(encounter_frequencies, abs(rao[rao_dof, :]), 'kx-')
-            plt.xlabel("encounter frequency [rad/s]")
+            plt.plot(encounter_frequencies/2/np.pi, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("encounter frequency [Hz]")
         elif xlabel_choice == 1:  # Plots uniform pressure DOF against wave frequency
-            plt.plot(FREQ, abs(rao[rao_dof, :]), 'kx-')
-            plt.xlabel("wave frequency [rad/s]")
+            plt.plot(FREQ/2/np.pi, abs(rao[rao_dof, :]), 'kx-')
+            plt.xlabel("wave frequency [Hz]")
         elif xlabel_choice == 2:  # Plots uniform pressure DOF against wave periods
             plt.plot(wave_periods, abs(rao[rao_dof, :]), 'kx-')
             plt.xlabel("wave periods [s]")
@@ -218,7 +218,6 @@ if plot_rao:
 # Compare RAO with and without wave pumping
 encounter_frequencies, rao1 = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, 1)
 encounter_frequencies, rao3 = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, 3)
-
 plt.plot(encounter_periods, abs(rao1[2, :]), marker='x', linestyle='-', color=color_BBGreen, label='RAO1')
 plt.plot(encounter_periods, abs(rao3[2, :]), marker='x', linestyle='-', color=color_BBPurple, label='RAO3')
 plt.ylabel('$\eta_3\zeta_a$')
@@ -226,6 +225,20 @@ plt.xlabel('encounter periods [s]')
 plt.grid()
 plt.legend(loc='best')
 plt.show()
+
+# Plot uniform pressure oscillations
+encounter_frequencies_hz = encounter_frequencies/2/np.pi
+plot_interval = (encounter_frequencies_hz > 0.8) & (encounter_frequencies_hz < 50)
+
+
+plt.plot(encounter_frequencies_hz[plot_interval], abs(rao[6, plot_interval]), marker='x', linestyle='-', color=color_BBGreen, label='RAO1')
+plt.ylabel('$\eta_7$')
+plt.xlabel('encounter frequencies [Hz]')
+plt.grid()
+plt.legend(loc='best')
+plt.show()
+
+
 
 '''
 nat_periods = 2*np.pi*np.power(nat_frequencies, -1)
