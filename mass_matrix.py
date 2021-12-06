@@ -1,12 +1,9 @@
 import numpy as np
 
 
-# TODO: Get control of the location of the center of gravity relative to the ShipX coordinate system.
-
-def create_mass_matrix(total_mass, r44, r55, r66):
-    # TODO: Get control of cross terms (I35 and I53)
+def create_mass_matrix(total_mass, r44, r55, r66, r46, x_G, z_G):
     """
-    Generates mass matrix for a SES-X vessel including all rigid body motions and uniform pressure
+    Generates mass matrix for a body with lateral symmetry for all six rigid body motions
 
     The typical values for radii of gyration in the three rotational degrees of freedom are found from VERES_manual.pdf
     p. 43.
@@ -19,23 +16,31 @@ def create_mass_matrix(total_mass, r44, r55, r66):
         radii of gyration in pitch, typically 0.20*L_pp - 0.30*L_pp
     :param r66: double
         radii of gyration in yaw, typically 0.25*L_pp - 0.30*L_pp
-    :return: M (7x7) numpy array
-        mass matrix containing elements for surge, sway, heave, roll, pitch, yaw and uniform cushion pressure
+    :param r46: double
+        radii of gyration for inertial coupling of yaw and roll, typically zero
+    :param: x_G double
+        longitudinal position of COG relative to the motion coordinate system
+    :param: z_G double
+        vertical position of COG relative to the motion coordinate system
+    :return: M (6x6) numpy array
+        mass matrix containing elements for surge, sway, heave, roll, pitch and yaw
     """
 
-    M = np.zeros([7, 7])
-
-    M[0, 0] = total_mass             # M_11, surge
-    M[1, 1] = total_mass             # M_22, sway
-    M[2, 2] = total_mass             # M_33, heave
-    M[3, 3] = total_mass * r44 ** 2  # I_44, roll
-    M[4, 4] = total_mass * r55 ** 2  # I_55, pitch
-    M[5, 5] = total_mass * r66 ** 2  # I_66, heave
+    # Creates mass matrix
+    M = total_mass * np.matrix([[1,    0,    0,       0,    z_G,       0],
+                                [0,    1,    0,    -z_G,      0,     x_G],
+                                [0,    0,    1,       0,   -x_G,       0],
+                                [0, -z_G,    0,  r44**2,      0, -r46**2],
+                                [z_G,  0, -x_G,       0, r55**2,       0],
+                                [0,  x_G,    0, -r46**2,      0,  r66**2]])
 
     return M
 
 
 if __name__ == "__main__":
+    # location of motion coordinate system relative to intersection of AP, CL and BL
+    x_prime = 10  # longitudinal distance from AP to the origin of the motion coordinate system
+    z_prime = 3   # vertical distance from BL to the origin of the motion coordinate system
 
     # main dimensions of BBGreen
     B = 6  # [m] beam of BBGreen
@@ -44,9 +49,14 @@ if __name__ == "__main__":
     r44 = 0.35*B  # [m] radii of gyration in roll
     r55 = 0.25*Lpp  # [m] radii of gyration in pitch
     r66 = 0.27*Lpp  # [m] radii of gyration in yaw
+    r46 = 0  # [m] radii of gyration for inertial coupling of yaw and roll
+    lcg = 7.83  # [m] longitudinal center of gravity relative to AP
+    vcg = 1.98  # [m] vertical center of gravity relative to BL
+    x_G = x_prime - lcg  # [m] longitudinal position of COG relative to the motion coordinate system
+    z_G = z_prime - vcg  # [m] vertical position of COG relative to the motion coordinate system
 
     # Creates mass matrix
-    M = create_mass_matrix(total_mass, r44, r55, r66)
+    M = create_mass_matrix(total_mass, r44, r55, r66, r46, x_G, z_G)
 
     print("Mass matrix:")
     print(M)

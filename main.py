@@ -30,23 +30,30 @@ A_b, x_c = air_cushion_area(l_rect, l_tri, b_c)  # Computes air cushion area pro
 
 Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)  # Interpolates fan characteristics
 
-
-
-# Create mass matrix
 # main dimensions of BBGreen
 beam = 6  # [m] beam of BBGreen
 Lpp = 19.4  # [m] L_pp of BBGreen
+
+# location of motion coordinate system relative to intersection of AP, CL and BL
+x_prime = Lpp/2 + XMTN[0]  # longitudinal distance from AP to the origin of the motion coordinate system
+z_prime = ZMTN[0]  # vertical distance from BL to the origin of the motion coordinate system
+
+# mass properties
 total_mass = 25.6e3  # [kg] total mass of the vessel
 r44 = 0.35 * beam  # [m] radii of gyration in roll
 r55 = 0.25 * Lpp  # [m] radii of gyration in pitch
 r66 = 0.27 * Lpp  # [m] radii of gyration in yaw
+r46 = 0  # [m] radii of gyration for inertial coupling of yaw and roll
+lcg = 7.83  # [m] longitudinal center of gravity relative to AP
+vcg = 1.98  # [m] vertical center of gravity relative to BL
+x_G = x_prime - lcg  # [m] longitudinal position of COG relative to the motion coordinate system
+z_G = z_prime - vcg  # [m] vertical position of COG relative to the motion coordinate system
 
 # Creates mass matrix
-M = create_mass_matrix(total_mass, r44, r55, r66)
+M = create_mass_matrix(total_mass, r44, r55, r66, r46, x_G, z_G)
 
-# location of motion coordinate system relative to intersection of AP, CL and BL
-x_prime = Lpp/2 + XMTN  # longitudinal distance from AP to the origin of the motion coordinate system
-z_prime = ZMTN  # vertical distance from BL to the origin of the motion coordinate system
+# Adds an empty row and column for the uniform pressure degree of freedom eta_7
+M = add_row_and_column(M)
 
 # Create damping and stiffness matrix from air cushion
 B_c = damping_matrix_air_cushion(A_b, x_c, x_prime, h_b, p_0)  # Damping
