@@ -316,7 +316,7 @@ def interpolate_matrices(omega, omega_lower, omega_upper, mat_lower, mat_upper):
     return mat
 
 
-def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, g=9.81):
+def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, force_combination=1, g=9.81):
 
     # TODO: Add documentation
 
@@ -326,14 +326,25 @@ def compute_RAOs(velocity, heading, wave_frequencies, M, A, B_c, B_h, C, F_ex_re
 
     rao = np.zeros([7, n], dtype=complex)
 
+    #force_combination = 2  # 1: Hydro, 2: Wave pumping, 3: both
+
     for i in range(n):
         A_temp = add_row_and_column(A[0, 0, i, :, :])
         B_temp = add_row_and_column(B_h[0, 0, i, :, :]) + B_c
         # adds a empty column to model no excitation in the air cushion
-        F_ex_real_temp = np.r_[F_ex_real[:, i, 0, 0], np.array([f_ex_7[i].real])]
-        F_ex_imag_temp = np.r_[F_ex_imag[:, i, 0, 0], np.array([f_ex_7[i].imag])]
-        #F_ex_real_temp = np.r_[F_ex_real[:, i, 0, 0], np.array([0])]
-        #F_ex_imag_temp = np.r_[F_ex_imag[:, i, 0, 0], np.array([0])]
+
+        if force_combination == 1:
+            F_ex_real_temp = np.r_[F_ex_real[:, i, 0, 0], np.array([0])]
+            F_ex_imag_temp = np.r_[F_ex_imag[:, i, 0, 0], np.array([0])]
+        elif force_combination == 2:
+            F_ex_real_temp = np.zeros([7])
+            F_ex_imag_temp = np.zeros([7])
+            F_ex_real_temp[6] = f_ex_7[i].real
+            F_ex_imag_temp[6] = f_ex_7[i].imag
+        elif force_combination == 3:
+            F_ex_real_temp = np.r_[F_ex_real[:, i, 0, 0], np.array([f_ex_7[i].real])]
+            F_ex_imag_temp = np.r_[F_ex_imag[:, i, 0, 0], np.array([f_ex_7[i].imag])]
+
         # Solves linear system of equations
         rao[:, i] = np.linalg.solve(-encounter_frequencies[i] ** 2 * (M + A_temp) + 1j * encounter_frequencies[i] * B_temp + C, F_ex_real_temp + F_ex_imag_temp*1j)
 
