@@ -42,14 +42,16 @@ def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, 
     return C_c
 
 
-def damping_matrix_air_cushion(S_0c, x_c, h, p_0, p_a=101325, gamma=1.4):
+def damping_matrix_air_cushion(A_b, x_c, x_prime, h_b, p_0, p_a=101325, gamma=1.4):
     """
     Creates and returns the damping matrix containing all terms arising because of the air cushion.
 
-    :param S_0c: (float)
+    :param A_b: (float)
         Total area of the air cushion
     :param x_c: (float)
         Distance from centroid to AP
+    :param x_prime: (float)
+        Distance from AP to motion coordinate system
     :param h: (float)
         Mean height between waterline and hull inside air cushion
     :param p_0: (float)
@@ -67,9 +69,9 @@ def damping_matrix_air_cushion(S_0c, x_c, h, p_0, p_a=101325, gamma=1.4):
     B_c = np.zeros([7, 7])
 
     # Calculate and add terms to damping matrix. (See power point)
-    B_c[6, 6] = p_0 * h * S_0c / gamma / (p_0 + p_a)
-    B_c[6, 4] = S_0c * x_c  # TODO: Find out what this should be
-    B_c[6, 2] = S_0c
+    B_c[6, 6] = p_0 * h_b * A_b / gamma / (p_0 + p_a)
+    B_c[6, 4] = A_b * (x_prime - x_c)
+    B_c[6, 2] = A_b
 
     return B_c
 
@@ -237,11 +239,14 @@ def read_fan_characteristics(filename, rpm='1800rpm'):
     return Q, P, rpm
 
 
-def wave_pumping_air_cushion(b, l_1, l_2, x_prime, k, beta, omega):
-    np.sin(np.deg2rad(beta))
-    np.cos(np.deg2rad(beta))
+def wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omega, g=9.81):
 
-    I_F_7 = 2 * 1j * np.sin(k * b / 2 * np.sin(np.deg2rad(beta))) / (
+    # TODO: Add documentation
+
+    k = omega**2/g  # calculate wave number
+
+    # Compute analytical solution to integral of spatial variation over the air cushion
+    i_f_7 = 2 * 1j * np.sin(k * b / 2 * np.sin(np.deg2rad(beta))) / (
             k ** 2 * np.sin(np.deg2rad(beta)) * np.cos(np.deg2rad(beta))) * \
             np.exp(-1j * k * x_prime * np.cos(np.deg2rad(beta)))*(1 - np.exp(1j*k*l_1*np.cos(np.deg2rad(beta)))) + \
             4*l_2*np.exp(-1j*k*(x_prime - l_1)*np.cos(np.deg2rad(beta)))/(k*b**2*np.sin(np.deg2rad(beta))**2 -
@@ -249,26 +254,30 @@ def wave_pumping_air_cushion(b, l_1, l_2, x_prime, k, beta, omega):
             (np.exp(-1j*k*l_2*np.cos(np.deg2rad(beta))) - np.cos(k*b/2*np.sin(np.deg2rad(beta)))) -
             1j*l_2*np.cos(np.deg2rad(beta))*np.sin(k*b/2*np.sin(np.deg2rad(beta))))
 
-    F_7_hat = 1j*omega*I_F_7
+    f_7_hat = 1j*omega*i_f_7
 
-    return F_7_hat
+    return f_7_hat
 
 
 if __name__ == "__main__":
 
-    l_rect = 12  # [m] length of the rectangular part of the air cushion
-    l_tri = 6  # [m] length of the triangular part of the air cushion
-    b_c = 3.4  # [m] beam of the air cushion
+    l_1 = 12  # [m] length of the rectangular part of the air cushion
+    l_2 = 6  # [m] length of the triangular part of the air cushion
+    b = 3.4  # [m] beam of the air cushion
 
     h = 0.5  # [m] mean height between waterline and hull inside air cushion
-    z_c = -0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
+    z_c = 0.5 * h  # [m] vertical centroid of the air cushion relative to the ShipX coordinate system
 
     p_0 = 3500  # [Pa] excess pressure in air cushion at equilibrium
 
     # computes air cushion area
-    S_0c, x_c = air_cushion_area(l_rect, l_tri, b_c)
+    A_b, x_c = air_cushion_area(l_2, l_2, b)
 
-    print('Total air cushion area is', S_0c, '[m^2].')
+    # Location of motion coordinate system relative to intersection of AP, CL and BL
+    x_prime = 8
+    z_prime = 3
+
+    print('Total air cushion area is', A_b, '[m^2].')
     print('The centroid of the air cushion is located', x_c, '[m] in front of AP.')
 
     # Read fan characteristics from at a specified constant RPM
@@ -291,14 +300,21 @@ if __name__ == "__main__":
     print('Q_0 \t=\t', Q_0, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0, '[(m^3s^-1)/(Pa)]')
 
     # computes stiffness matrix
-    C_c = stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0)
+    C_c = stiffness_matrix_air_cushion(A_b, h, x_c, z_c, Q_0, dQdp_0, p_0)
     print('Stiffness matrix:')
     print(C_c)
 
     # computes damping matrix
-    B_c = damping_matrix_air_cushion(S_0c, x_c, h, p_0)
+    B_c = damping_matrix_air_cushion(A_b, x_c, x_prime, h, p_0)
     print('Damping matrix:')
     print(B_c)
+
+    # computes wave pumping
+    beta = 0  # [deg] heading of incident waves
+    omega = 0.2 * np.pi  # [rad/s] incoming frequency of waves in the beta direction.
+
+    f_7_hat = wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omega)
+    print(f_7_hat)
 
     rpms = ['1000rpm', '1400rpm', '1600rpm', '1800rpm', '2108rpm']
 
