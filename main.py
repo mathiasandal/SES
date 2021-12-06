@@ -33,7 +33,7 @@ Q_0, dQdp_0 = interpolate_fan_characteristics(p_0, P, Q)  # Interpolates fan cha
 
 # main dimensions of BBGreen
 beam = 6  # [m] beam of BBGreen
-Lpp = 19.4  # [m] L_pp of BBGreen
+Lpp = 19.9  # [m] L_pp of BBGreen
 
 # location of motion coordinate system relative to intersection of AP, CL and BL
 x_prime = Lpp/2 + XMTN[0]  # longitudinal distance from AP to the origin of the motion coordinate system
@@ -73,7 +73,8 @@ if decouple:
 
 # Compute natural frequencies and eigenmodes
 # Iterate through frequencies to find the true natural frequencies
-nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M, C, 9.81, 1e-8)
+nat_frequencies_squared, eigen_modes, encounter_frequencies = iterate_natural_frequencies(FREQ, VEL[0], HEAD[0], A_h, M,
+                                                                                          C, 9.81, 1e-8)
 
 nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 
@@ -81,7 +82,10 @@ nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 f_ex_7 = wave_pumping_excitation(b, l_1, l_2, x_prime, HEAD[0], encounter_frequencies)
 
 # Compute RAOs
-encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7)
+force_combination = 3
+encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7,
+                                          force_combination)
+
 wave_periods = 2*np.pi*np.power(FREQ, -1)
 encounter_periods = 2*np.pi*np.power(encounter_frequencies, -1)
 # k_encounter = 9.81*np.power(encounter_frequencies, 2)
@@ -110,6 +114,8 @@ plt.grid()
 plt.show()
 '''
 
+'''
+# Plotting hydrodynamic coefficients
 plt.plot(encounter_periods, A_h[0, 0, :, 4, 4], 'x-')
 plt.xlabel("encounter period [s]")
 plt.ylabel("$A_{55}^{hyd}$ [kg m^2]")
@@ -135,14 +141,19 @@ plt.title("$B_{33}^{hyd}$, " + str(VEL[0]) + " [m/s]")
 # plt.vlines([nat_frequencies[0], nat_frequencies[1]], np.amin(A_h[0, 0, :, 2, 2]), np.amax(A_h[0, 0, :, 2, 2]))
 plt.grid()
 plt.show()
-
+'''
 
 # Plot RAOs
 plot_rao = True
-rao_dof = 6  # choose what degree of freedom to plot
+rao_dof = 2  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
 xlabel_choice = 3  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
+
+# Define plot colors
+color_BBGreen = '#5cb16d'
+color_BBPurple = '#b15ca0'
+# marker = 'x', linestyle = '-', markerfacecolor='#5cb16d', markeredgecolor='k'
 
 if plot_rao:
     if rao_dof == 0 or rao_dof == 1 or rao_dof == 2:  # Translational degree of freedom
@@ -204,9 +215,23 @@ if plot_rao:
     plt.grid()
     plt.show()
 
+# Compare RAO with and without wave pumping
+encounter_frequencies, rao1 = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, 1)
+encounter_frequencies, rao3 = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7, 3)
+
+plt.plot(encounter_periods, abs(rao1[2, :]), marker='x', linestyle='-', color=color_BBGreen, label='RAO1')
+plt.plot(encounter_periods, abs(rao3[2, :]), marker='x', linestyle='-', color=color_BBPurple, label='RAO3')
+plt.ylabel('$\eta_3\zeta_a$')
+plt.xlabel('encounter periods [s]')
+plt.grid()
+plt.legend(loc='best')
+plt.show()
+
+'''
 nat_periods = 2*np.pi*np.power(nat_frequencies, -1)
 print(nat_frequencies)
 eigen_modes = np.array(eigen_modes)
 print(eigen_modes)
 
 print("C_33 = " + str(C_h[0, 0, 50, 2, 2]) + " [N/m]")
+'''
