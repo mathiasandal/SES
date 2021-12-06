@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
 
-def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
+def stiffness_matrix_air_cushion(A_b, h, x_c, z_c, x_prime, z_prime, Q_0, dQdp_0, p_0, rho=1025, g=9.81):
     """
     Creates and returns the stiffness matrix containing all terms arising because of the air cushion
 
-    :param S_0c: (double)
+    :param A_b: (double)
         Total area of the air cushion
     :param h: (double)
         Mean height between waterline and hull inside air cushion
@@ -33,11 +33,12 @@ def stiffness_matrix_air_cushion(S_0c, h, x_c, z_c, Q_0, dQdp_0, p_0, rho=1025, 
     # Initialize stiffness matrix due to air cushion
     C_c = np.zeros([7, 7])
 
-    # Calculate and add terms to stiffness matrix. (See power point)
-    C_c[6, 6] = 0.5 * Q_0 - p_0 * dQdp_0
-    C_c[4, 4] = rho * g * h * S_0c * z_c
-    C_c[2, 6] = -rho * g * h * S_0c
-    C_c[4, 6] = rho * g * h * S_0c * x_c
+    # Calculate and add terms to stiffness matrix.
+    C_c[6, 6] = 0.5 * Q_0 - p_0 * dQdp_0  # in uniform pressure due to uniform pressure change
+    C_c[3, 3] = rho * g * h * (z_prime - z_c) * A_b  # in roll due to roll motion
+    C_c[4, 4] = rho * g * h * (z_prime - z_c) * A_b  # in pitch due to pitch motion
+    C_c[2, 6] = -rho * g * h * A_b  # in heave due to to uniform pressure change
+    C_c[4, 6] = rho * g * h * (x_prime - x_c) * A_b  # in pitch due to uniform pressure change
 
     return C_c
 
@@ -309,7 +310,7 @@ if __name__ == "__main__":
     print('Q_0 \t=\t', Q_0, '[m^3/s]\ndQdp_0 \t=\t', dQdp_0, '[(m^3s^-1)/(Pa)]')
 
     # computes stiffness matrix
-    C_c = stiffness_matrix_air_cushion(A_b, h, x_c, z_c, Q_0, dQdp_0, p_0)
+    C_c = stiffness_matrix_air_cushion(A_b, h, x_c, z_c, x_prime, z_prime, Q_0, dQdp_0, p_0)
     print('Stiffness matrix:')
     print(C_c)
 
