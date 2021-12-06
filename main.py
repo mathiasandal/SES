@@ -81,7 +81,7 @@ nat_frequencies = np.power(abs(nat_frequencies_squared), 0.5)
 f_ex_7 = wave_pumping_excitation(b, l_1, l_2, x_prime, HEAD[0], encounter_frequencies)
 
 # Compute RAOs
-encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag)
+encounter_frequencies, rao = compute_RAOs(VEL, HEAD, FREQ, M, A_h, B_c, B_h, C, F_ex_real, F_ex_imag, f_ex_7)
 wave_periods = 2*np.pi*np.power(FREQ, -1)
 encounter_periods = 2*np.pi*np.power(encounter_frequencies, -1)
 # k_encounter = 9.81*np.power(encounter_frequencies, 2)
@@ -139,7 +139,7 @@ plt.show()
 
 # Plot RAOs
 plot_rao = True
-rao_dof = 2  # choose what degree of freedom to plot
+rao_dof = 6  # choose what degree of freedom to plot
 DOF_names = ['surge', 'sway', 'heave', 'roll', 'pitch', 'yaw', 'cushion pressure']
 xlabel_choice = 3  # chose what to plot the RAO against
 xlabel_quantity = ['encounter frequency', 'wave frequency', 'wave periods', 'encounter_periods']
