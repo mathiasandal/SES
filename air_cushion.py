@@ -246,15 +246,24 @@ def wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omega, g=9.81):
     k = omega**2/g  # calculate wave number
 
     # Compute analytical solution to integral of spatial variation over the air cushion
-    i_f_7 = 2 * 1j * np.sin(k * b / 2 * np.sin(np.deg2rad(beta))) / (
-            k ** 2 * np.sin(np.deg2rad(beta)) * np.cos(np.deg2rad(beta))) * \
-            np.exp(-1j * k * x_prime * np.cos(np.deg2rad(beta)))*(1 - np.exp(1j*k*l_1*np.cos(np.deg2rad(beta)))) + \
-            4*l_2*np.exp(-1j*k*(x_prime - l_1)*np.cos(np.deg2rad(beta)))/(k*b**2*np.sin(np.deg2rad(beta))**2 -
-            4*l_2**2*k*np.cos(np.deg2rad(beta))**2)*(b/2*np.sin(np.deg2rad(beta)) *
-            (np.exp(-1j*k*l_2*np.cos(np.deg2rad(beta))) - np.cos(k*b/2*np.sin(np.deg2rad(beta)))) -
-            1j*l_2*np.cos(np.deg2rad(beta))*np.sin(k*b/2*np.sin(np.deg2rad(beta))))
+    if np.sin(np.deg2rad(beta)) == 0:  # sin(beta) = 0
+        I_1 = b/k/np.cos(np.deg2rad(beta)) * (np.exp(-1j*k*x_prime*np.cos(np.deg2rad(beta))))
+        I_2 = 0
+    elif np.cos(np.deg2rad(beta)) == 0:  # cos(beta) = 0
+        I_1 = 2*np.sin(k*b/2*np.sin(np.deg2rad(beta)))/k/np.sin(np.deg2rad(beta))\
+              * (x_prime*np.exp(-1j*k*x_prime*np.cos(np.deg2rad(beta))) -
+                (x_prime - l_1)*np.exp(-1j*k*(x_prime - l_1)*np.cos(np.deg2rad(beta))))
+        I_2 = 2*l_2/k/np.sin(np.deg2rad(beta))*(1 - np.cos(k*b/2 * np.sin(np.deg2rad(beta))))
+    else:  # sin(beta) and cos(beta) is not equal zero
+        I_1 = 2 * 1j * np.sin(k * b / 2 * np.sin(np.deg2rad(beta))) / (
+                k ** 2 * np.sin(np.deg2rad(beta)) * np.cos(np.deg2rad(beta))) * \
+                np.exp(-1j * k * x_prime * np.cos(np.deg2rad(beta)))*(1 - np.exp(1j*k*l_1*np.cos(np.deg2rad(beta))))
+        I_2 = 4*l_2*np.exp(-1j*k*(x_prime - l_1)*np.cos(np.deg2rad(beta)))/(k*b**2*np.sin(np.deg2rad(beta))**2 -
+              4*l_2**2*k*np.cos(np.deg2rad(beta))**2)*(b/2*np.sin(np.deg2rad(beta)) *
+              (np.exp(-1j*k*l_2*np.cos(np.deg2rad(beta))) - np.cos(k*b/2*np.sin(np.deg2rad(beta)))) -
+              1j*l_2*np.cos(np.deg2rad(beta))*np.sin(k*b/2*np.sin(np.deg2rad(beta))))
 
-    f_7_hat = 1j*omega*i_f_7
+    f_7_hat = 1j*omega*(I_1 + I_2)
 
     return f_7_hat
 
@@ -310,7 +319,7 @@ if __name__ == "__main__":
     print(B_c)
 
     # computes wave pumping
-    beta = 0  # [deg] heading of incident waves
+    beta = 90  # [deg] heading of incident waves
     omega = 0.2 * np.pi  # [rad/s] incoming frequency of waves in the beta direction.
 
     f_7_hat = wave_pumping_air_cushion(b, l_1, l_2, x_prime, beta, omega)
